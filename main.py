@@ -4,6 +4,7 @@ from torchtext.vocab import GloVe
 from torchtext.data import to_map_style_dataset
 from torchtext.data.utils import get_tokenizer
 from torch.nn.utils.rnn import pad_sequence
+from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader, random_split
 from torch.optim import Adam
 from tqdm import tqdm
