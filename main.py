@@ -17,6 +17,7 @@ VALIDATION_SPLIT = 0.5  # of test data
 BATCH_SIZE = 64
 SHUFFLE = True
 NUM_EPOCHS = 10
+PATH = './checkpoints'
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
