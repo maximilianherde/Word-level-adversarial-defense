@@ -3,6 +3,7 @@ from torchtext.datasets import IMDB, AG_NEWS, YahooAnswers
 from torchtext.vocab import GloVe
 from torchtext.data import to_map_style_dataset
 from torchtext.data.utils import get_tokenizer
+from pytorch_pretrained_bert import BertTokenizer
 from torch.nn.utils.rnn import pad_sequence
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader, random_split
@@ -13,16 +14,18 @@ from models.BiRLM import BidirectionalGRUClassifier, BidirectionalLSTMClassifier
 from models.CNN import CNNClassifier, CNNClassifier2
 from models.BERT import BERTClassifier
 from pathlib import Path
+import time
 
-DATASET = 'IMDB'
+DATASET = 'AG_NEWS'  # choose from IMDB, AG_NEWS, YahooAnswers
 MODEL = 'CNN2'  # choose from: GRU, LSTM, CNN, BERT, CNN2
 VALIDATION_SPLIT = 0.5  # of test data
 BATCH_SIZE = 64
 SHUFFLE = True
-NUM_EPOCHS = 4  # default 10
+NUM_EPOCHS = 2  # default 10
 PATH = './checkpoints/'
 TRAIN = False
-CHECKPOINT = 3  # last CHECKPOINT = NUM_EPOCHS - 1
+CHECKPOINT = 1  # last CHECKPOINT = NUM_EPOCHS - 1
+MAX_LEN_BERT = 300
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -41,7 +44,12 @@ elif DATASET == 'YahooAnswers':
 else:
     raise ValueError()
 
-tokenizer = get_tokenizer('basic_english')
+if MODEL == 'BERT':
+    tokenizer = None
+    tokenizer_bert = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
+else:
+    tokenizer = get_tokenizer('basic_english')
+
 embedding = GloVe(name='6B', dim=50)
 
 train_set = to_map_style_dataset(train_set)
@@ -55,10 +63,21 @@ test_set, val_set = random_split(test_set, [test_set.__len__() - int(VALIDATION_
 
 def collate_batch(batch):
     label_list, text_list = [], []
-    for (_label, _tokens) in batch:
-        label_list.append(_label)
-        embed = embedding.get_vecs_by_tokens(_tokens)
-        text_list.append(embed)
+    if MODEL == 'BERT':
+        for (_label, _tokens) in batch:
+            label_list.append(_label)
+            # toDo: proper pre-processing for BERT model
+            sentences = ["[CLS] " + s for s in _tokens]
+            tokenized_sentences = [tokenizer_bert.tokenize(s) for s in sentences]
+            tokenized_cropped = [t[:(MAX_LEN_BERT - 1)] + ['SEP'] for t in tokenized_sentences]
+            embed = 0
+            # toDo: proper pre-processing for BERT model
+            text_list.append(embed)
+    else:
+        for (_label, _tokens) in batch:
+            label_list.append(_label)
+            embed = embedding.get_vecs_by_tokens(_tokens)
+            text_list.append(embed)
     label_list = torch.tensor(label_list, dtype=torch.int64)
     text_list = pad_sequence(text_list, batch_first=True)
     return label_list.to(device), text_list.to(device)
@@ -117,11 +136,9 @@ elif MODEL == 'CNN':
     # todo: ADD right parameters: num_classes, in_channels, out_channels, kernel_heights
     optim = Adam(model.parameters())
 elif MODEL == 'BERT':
-    # todo: implement
-    model = BERTClassifier().to(device)
+    model = BERTClassifier(num_classes).to(device)
     optim = Adam(model.parameters())
 elif MODEL == 'CNN2':
-    # todo: finetune
     model = CNNClassifier2(num_classes).to(device)
     optim = Adam(model.parameters())
 
