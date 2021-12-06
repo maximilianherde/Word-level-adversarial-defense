@@ -1,6 +1,8 @@
 import torch
 import torch.nn.functional as F
 from torch.nn import Linear, Softmax, Conv2d, Dropout
+import torch.nn as nn
+
 
 class CNNClassifier(torch.nn.Module):
     def __init__(self, num_classes, in_channels, out_channels, kernel_heights, pad=0, stri=1, embed_dim=50, drop=0.2):
@@ -35,3 +37,40 @@ class CNNClassifier(torch.nn.Module):
         out = self.soft(fc_out)
 
         return out
+
+
+class CNNClassifier2(torch.nn.Module):
+    def __init__(self, num_classes, embedding_dim=50):
+        super().__init__()
+
+        self.conv = nn.Sequential(
+            nn.Conv1d(in_channels=embedding_dim, out_channels=28, kernel_size=3),
+            nn.MaxPool1d(kernel_size=2),
+            nn.ReLU(),
+            nn.Conv1d(in_channels=28, out_channels=128, kernel_size=3),
+            nn.MaxPool1d(kernel_size=2),
+            nn.ReLU()
+        )
+
+        self.dense = nn.Sequential(
+            # nn.Dropout(.3),
+            nn.Linear(128, 50),
+            nn.ReLU(),
+            nn.Linear(50, num_classes),
+            nn.Softmax(dim=1)
+        )
+
+    def pooling(self, x):
+        x_max = F.max_pool1d(x, x.size()[2]).squeeze(2)
+        return x_max
+
+    def forward(self, x):
+        # print(x.shape)  # 64,varying,50
+        bs = x.shape[0]  # 64
+        x = x.transpose(1, 2)
+        x = self.conv(x)
+        # print(x.shape) #
+        x = self.pooling(x)
+        x = x.view(bs, -1)
+        y = self.dense(x)
+        return y

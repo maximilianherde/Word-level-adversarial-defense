@@ -10,14 +10,19 @@ from torch.optim import Adam
 from tqdm import tqdm
 from dataset import ClassificationDataset
 from models.BiRLM import BidirectionalGRUClassifier, BidirectionalLSTMClassifier
+from models.CNN import CNNClassifier, CNNClassifier2
+from models.BERT import BERTClassifier
+from pathlib import Path
 
 DATASET = 'AG_NEWS'
-MODEL = 'LSTM'
+MODEL = 'CNN2'  # choose from: GRU, LSTM, CNN, BERT, CNN2
 VALIDATION_SPLIT = 0.5  # of test data
 BATCH_SIZE = 64
 SHUFFLE = True
-NUM_EPOCHS = 10
-PATH = './checkpoints'
+NUM_EPOCHS = 4  # default 10
+PATH = './checkpoints/'
+TRAIN = True
+CHECKPOINT = 0  # last CHECKPOINT = NUM_EPOCHS - 1
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -101,26 +106,45 @@ def train(model, optimizer, train_loader, loss=CrossEntropyLoss(), log_interval=
     pbar.close()
 
 
-model = BidirectionalGRUClassifier(num_classes, 64, 1).to(device)
-optim = Adam(model.parameters())
+if MODEL == 'GRU':
+    model = BidirectionalGRUClassifier(num_classes, 64, 1).to(device)
+    optim = Adam(model.parameters())
+elif MODEL == 'LSTM':
+    model = BidirectionalLSTMClassifier(num_classes, 64, 1).to(device)
+    optim = Adam(model.parameters())
+elif MODEL == 'CNN':
+    model = CNNClassifier(num_classes, 1, [2, 2, 2], [3, 3, 3]).to(device)
+    # todo: ADD right parameters: num_classes, in_channels, out_channels, kernel_heights
+    optim = Adam(model.parameters())
+elif MODEL == 'BERT':
+    # todo: implement
+    model = BERTClassifier().to(device)
+    optim = Adam(model.parameters())
+elif MODEL == 'CNN2':
+    # todo: implement
+    model = CNNClassifier2(num_classes).to(device)
+    optim = Adam(model.parameters())
 
-for epoch in range(NUM_EPOCHS):
-    train(model, optim, train_loader)
-    val_accuracy = evaluate(model, val_loader)
-
-    torch.save({
-        'epoch': epoch,
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optim.state_dict(),
-        'val_accuracy': val_accuracy
-    }, PATH + '_' + str(epoch) + '.pt')
-
-    # How to load a model
-    #checkpoint = torch.load(PATH)
-    # model.load_state_dict(checkpoint['model_state_dict'])
-    # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    #epoch = checkpoint['epoch']
-    #val_accuracy = checkpoint['val_accuracy']
+if TRAIN:
+    for epoch in range(NUM_EPOCHS):
+        train(model, optim, train_loader)
+        val_accuracy = evaluate(model, val_loader)
+        # creates checkpoints directory if not existing yet
+        Path("./checkpoints").mkdir(parents=True, exist_ok=True)
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optim.state_dict(),
+            'val_accuracy': val_accuracy
+        }, PATH + MODEL + '_' + DATASET + '_' + str(epoch) + '.pt')
+else:
+    # load a pretrained model
+    PATH_MODEL = PATH + MODEL + '_' + DATASET + '_' + str(CHECKPOINT) + '.pt'
+    checkpoint = torch.load(PATH_MODEL)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optim.load_state_dict(checkpoint['optimizer_state_dict'])
+    epoch = checkpoint['epoch']
+    val_accuracy = checkpoint['val_accuracy']
 
 test_accuracy = evaluate(model, test_loader)
 print(f'Test accuracy: {test_accuracy}')
