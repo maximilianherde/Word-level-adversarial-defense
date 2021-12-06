@@ -12,4 +12,8 @@ class ClassificationDataset(Dataset):
 
     def __getitem__(self, idx):
         label, text = self.dataset.__getitem__(idx)
-        return int(label) - 1, self.tokenizer(text)
+        if self.num_classes == 2:
+            label_int = 1 if label == 'pos' else 0
+            return label_int, self.tokenizer(text)
+        else:
+            return int(label) - 1, self.tokenizer(text)

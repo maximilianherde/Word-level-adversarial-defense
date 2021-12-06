@@ -14,15 +14,15 @@ from models.CNN import CNNClassifier, CNNClassifier2
 from models.BERT import BERTClassifier
 from pathlib import Path
 
-DATASET = 'AG_NEWS'
+DATASET = 'IMDB'
 MODEL = 'CNN2'  # choose from: GRU, LSTM, CNN, BERT, CNN2
 VALIDATION_SPLIT = 0.5  # of test data
 BATCH_SIZE = 64
 SHUFFLE = True
 NUM_EPOCHS = 4  # default 10
 PATH = './checkpoints/'
-TRAIN = True
-CHECKPOINT = 0  # last CHECKPOINT = NUM_EPOCHS - 1
+TRAIN = False
+CHECKPOINT = 3  # last CHECKPOINT = NUM_EPOCHS - 1
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -121,7 +121,7 @@ elif MODEL == 'BERT':
     model = BERTClassifier().to(device)
     optim = Adam(model.parameters())
 elif MODEL == 'CNN2':
-    # todo: implement
+    # todo: finetune
     model = CNNClassifier2(num_classes).to(device)
     optim = Adam(model.parameters())
 

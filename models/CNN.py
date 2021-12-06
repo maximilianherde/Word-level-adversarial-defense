@@ -65,11 +65,9 @@ class CNNClassifier2(torch.nn.Module):
         return x_max
 
     def forward(self, x):
-        # print(x.shape)  # 64,varying,50
-        bs = x.shape[0]  # 64
+        bs = x.shape[0]
         x = x.transpose(1, 2)
         x = self.conv(x)
-        # print(x.shape) #
         x = self.pooling(x)
         x = x.view(bs, -1)
         y = self.dense(x)
