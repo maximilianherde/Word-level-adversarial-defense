@@ -16,7 +16,7 @@ class CustomPyTorchModelWrapper(textattack.models.wrappers.model_wrapper.ModelWr
             tokens = self.tokenizer(review)
             input = self.vocab.get_vecs_by_tokens(tokens)
             with torch.no_grad():
-                prediction = self.model(torch.unsqueeze(input, dim=0))
+                prediction = self.model(torch.unsqueeze(input, dim=0).to(device))
                 preds[i] = prediction
 
         return preds
