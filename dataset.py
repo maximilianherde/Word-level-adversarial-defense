@@ -1,6 +1,5 @@
 from torch.utils.data import Dataset
 
-
 class ClassificationDataset(Dataset):
     def __init__(self, dataset, num_classes, tokenizer, model):
         self.num_classes = num_classes
