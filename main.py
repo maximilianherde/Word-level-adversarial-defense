@@ -13,6 +13,7 @@ from dataset import ClassificationDataset
 from models.BiRLM import BidirectionalGRUClassifier, BidirectionalLSTMClassifier
 from models.CNN import CNNClassifier, CNNClassifier2
 from models.BERT import BERTClassifier
+from transformers import BertTokenizer, BertForSequenceClassification, AdamW
 from pathlib import Path
 import time
 
@@ -45,8 +46,7 @@ else:
     raise ValueError()
 
 if MODEL == 'BERT':
-    tokenizer = None
-    tokenizer_bert = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
+    tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
 else:
     tokenizer = get_tokenizer('basic_english')
 
@@ -63,66 +63,94 @@ test_set, val_set = random_split(test_set, [test_set.__len__() - int(VALIDATION_
 
 def collate_batch(batch):
     label_list, text_list = [], []
-    if MODEL == 'BERT':
-        for (_label, _tokens) in batch:
-            label_list.append(_label)
-            # toDo: proper pre-processing for BERT model
-            sentences = ["[CLS] " + s for s in _tokens]
-            tokenized_sentences = [tokenizer_bert.tokenize(s) for s in sentences]
-            tokenized_cropped = [t[:(MAX_LEN_BERT - 1)] + ['SEP'] for t in tokenized_sentences]
-            embed = 0
-            # toDo: proper pre-processing for BERT model
-            text_list.append(embed)
-    else:
-        for (_label, _tokens) in batch:
-            label_list.append(_label)
-            embed = embedding.get_vecs_by_tokens(_tokens)
-            text_list.append(embed)
-    label_list = torch.tensor(label_list, dtype=torch.int64)
+    for (_label, _tokens) in batch:
+        label_list.append(_label)
+        embed = embedding.get_vecs_by_tokens(_tokens)
+        text_list.append(embed)
     text_list = pad_sequence(text_list, batch_first=True)
+    label_list = torch.tensor(label_list, dtype=torch.int64)
     return label_list.to(device), text_list.to(device)
 
+def collate_BERT(batch):
+    label_list, input_ids, token_type_ids, attention_mask = [], [], [], []
+    for (_label, _dic) in batch:
+        label_list.append(_label)
+        input_ids.append(_dic['input_ids'])
+        token_type_ids.append(_dic['token_type_ids'])
+        attention_mask.append(_dic['attention_mask'])
+    label_list = torch.tensor(label_list, dtype=torch.int64).to(device)
+    input_ids = torch.cat(input_ids, dim=0).to(device)
+    token_type_ids = torch.cat(token_type_ids, dim=0).to(device)
+    attention_mask = torch.cat(attention_mask, dim=0).to(device)
+    return label_list, input_ids, token_type_ids, attention_mask
 
-train_loader = DataLoader(train_set, batch_size=BATCH_SIZE,
-                          collate_fn=collate_batch, shuffle=SHUFFLE)
-test_loader = DataLoader(test_set, batch_size=BATCH_SIZE,
-                         collate_fn=collate_batch, shuffle=SHUFFLE)
-val_loader = DataLoader(val_set, batch_size=BATCH_SIZE,
-                        collate_fn=collate_batch, shuffle=SHUFFLE)
+if MODEL == 'BERT':
+    train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
+    test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
+    val_loader = DataLoader(val_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
+else:
+    train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, collate_fn=collate_batch, shuffle=SHUFFLE)
+    test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, collate_fn=collate_batch, shuffle=SHUFFLE)
+    val_loader = DataLoader(val_set, batch_size=BATCH_SIZE, collate_fn=collate_batch, shuffle=SHUFFLE)
 
 
 def evaluate(model, data_loader, loss=CrossEntropyLoss()):
     model.eval()
     total_acc, total_count = 0, 0
-
+    
     with torch.no_grad():
-        for idx, (labels, text) in enumerate(data_loader):
-            predicted_label = model(text)
-            loss_ = loss(predicted_label, labels)
-            total_acc += (predicted_label.argmax(1) == labels).sum().item()
-            total_count += labels.size(0)
+        if MODEL == "BERT":
+            for idx, (labels, input_ids, token_type_ids, attention_mask) in enumerate(data_loader):
+                predicted_label = model(input_ids, token_type_ids, attention_mask)
+                loss_ = loss(predicted_label, labels)
+                total_acc += (predicted_label.argmax(1) == labels).sum().item()
+                total_count += labels.size(0)
+        else:
+            for idx, (labels, text) in enumerate(data_loader):
+                predicted_label = model(text)
+                loss_ = loss(predicted_label, labels)
+                total_acc += (predicted_label.argmax(1) == labels).sum().item()
+                total_count += labels.size(0)
+    
     return total_acc / total_count
 
 
 def train(model, optimizer, train_loader, loss=CrossEntropyLoss(), log_interval=50):
     model.train()
     total_acc, total_count = 0, 0
-    pbar = tqdm(total=len(train_loader),
-                desc=f'Epoch [{epoch + 1}/{NUM_EPOCHS}]')
-    for idx, (labels, text) in enumerate(train_loader):
-        output = model(text)
-        loss_ = loss(output, labels)
-        optimizer.zero_grad()
-        loss_.backward()
-        optimizer.step()
-        total_acc += (output.argmax(1) == labels).sum().item()
-        total_count += labels.size(0)
-        pbar.update()
-        if idx % log_interval == 0 and idx > 0:
-            pbar.set_postfix(loss=loss_, accuracy=total_acc / total_count)
-            total_acc, total_count = 0, 0
+    pbar = tqdm(total=len(train_loader), desc=f'Epoch [{epoch + 1}/{NUM_EPOCHS}]')
 
-    pbar.close()
+    if MODEL == 'BERT':
+        for idx, (labels, input_ids, token_type_ids, attention_mask) in enumerate(train_loader):
+            output = model(input_ids, token_type_ids, attention_mask)
+            loss_ = loss(output, labels)
+            optimizer.zero_grad()
+            loss_.backward()
+            nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            optimizer.step()
+            total_acc += (output.argmax(1) == labels).sum().item()
+            total_count += labels.size(0)
+            pbar.update()
+            if idx % log_interval == 0 and idx > 0:
+                pbar.set_postfix(loss=loss_, accuracy=total_acc / total_count)
+                total_acc, total_count = 0, 0
+        
+        pbar.close()
+    else:
+        for idx, (labels, text) in enumerate(train_loader):
+            output = model(text)
+            loss_ = loss(output, labels)
+            optimizer.zero_grad()
+            loss_.backward()
+            optimizer.step()
+            total_acc += (output.argmax(1) == labels).sum().item()
+            total_count += labels.size(0)
+            pbar.update()
+            if idx % log_interval == 0 and idx > 0:
+                pbar.set_postfix(loss=loss_, accuracy=total_acc / total_count)
+                total_acc, total_count = 0, 0
+        
+        pbar.close()
 
 
 if MODEL == 'GRU':
@@ -137,7 +165,7 @@ elif MODEL == 'CNN':
     optim = Adam(model.parameters())
 elif MODEL == 'BERT':
     model = BERTClassifier(num_classes).to(device)
-    optim = Adam(model.parameters())
+    optim = AdamW(model.parameters(), lr=3e-5, correct_bias=False)
 elif MODEL == 'CNN2':
     model = CNNClassifier2(num_classes).to(device)
     optim = Adam(model.parameters())
