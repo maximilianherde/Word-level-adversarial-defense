@@ -6,6 +6,7 @@ Deep Learning Project HS21
 - torchtext
 - tqdm
 - textattack
+- scikit-learn
 
 ## BERT resources
 

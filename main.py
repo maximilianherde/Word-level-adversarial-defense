@@ -3,7 +3,6 @@ from torchtext.datasets import IMDB, AG_NEWS, YahooAnswers
 from torchtext.vocab import GloVe
 from torchtext.data import to_map_style_dataset
 from torchtext.data.utils import get_tokenizer
-from pytorch_pretrained_bert import BertTokenizer
 from torch.nn.utils.rnn import pad_sequence
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader, random_split
@@ -13,6 +12,10 @@ from dataset import ClassificationDataset
 from models.BiRLM import BidirectionalGRUClassifier, BidirectionalLSTMClassifier
 from models.CNN import CNNClassifier, CNNClassifier2
 from models.BERT import BERTClassifier
+from metrics.accuracy import accuracy
+from metrics.auroc import auroc
+from metrics.f1 import f1
+from metrics.stats import stats
 from transformers import BertTokenizer, BertForSequenceClassification, AdamW
 from pathlib import Path
 import time
@@ -22,10 +25,10 @@ MODEL = 'CNN2'  # choose from: GRU, LSTM, CNN, BERT, CNN2
 VALIDATION_SPLIT = 0.5  # of test data
 BATCH_SIZE = 64
 SHUFFLE = True
-NUM_EPOCHS = 2  # default 10
+NUM_EPOCHS = 1  # default 10
 PATH = './checkpoints/'
-TRAIN = False
-CHECKPOINT = 1  # last CHECKPOINT = NUM_EPOCHS - 1
+TRAIN = True
+CHECKPOINT = 0  # last CHECKPOINT = NUM_EPOCHS - 1
 MAX_LEN_BERT = 300
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -55,8 +58,8 @@ embedding = GloVe(name='6B', dim=50)
 train_set = to_map_style_dataset(train_set)
 test_set = to_map_style_dataset(test_set)
 
-train_set = ClassificationDataset(train_set, num_classes, tokenizer)
-test_set = ClassificationDataset(test_set, num_classes, tokenizer)
+train_set = ClassificationDataset(train_set, num_classes, tokenizer, MODEL)
+test_set = ClassificationDataset(test_set, num_classes, tokenizer, MODEL)
 test_set, val_set = random_split(test_set, [test_set.__len__() - int(VALIDATION_SPLIT * test_set.__len__(
 )), int(VALIDATION_SPLIT * test_set.__len__())], generator=torch.Generator().manual_seed(42))
 
@@ -126,7 +129,7 @@ def train(model, optimizer, train_loader, loss=CrossEntropyLoss(), log_interval=
             loss_ = loss(output, labels)
             optimizer.zero_grad()
             loss_.backward()
-            nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
             total_acc += (output.argmax(1) == labels).sum().item()
             total_count += labels.size(0)
@@ -160,7 +163,7 @@ elif MODEL == 'LSTM':
     model = BidirectionalLSTMClassifier(num_classes, 64, 1).to(device)
     optim = Adam(model.parameters())
 elif MODEL == 'CNN':
-    model = CNNClassifier(num_classes, 1, [2, 2, 2], [3, 3, 3]).to(device)
+    model = CNNClassifier(num_classes, 1, [3, 5, 7], [2, 3, 4]).to(device)
     # todo: ADD right parameters: num_classes, in_channels, out_channels, kernel_heights
     optim = Adam(model.parameters())
 elif MODEL == 'BERT':
@@ -193,3 +196,13 @@ else:
 
 test_accuracy = evaluate(model, test_loader)
 print(f'Test accuracy: {test_accuracy}')
+
+# testing metrics
+'''print(f'Test accuracy: {accuracy(model,MODEL,test_loader)}')
+print(f'Test auroc: {auroc(model,MODEL,test_loader, avg="weighted")}')
+print(f'Test f1: {f1(model,MODEL,test_loader, avg="weighted")}')'''
+
+# all in one statistics: accuracy, roc-auc and f1
+stats = stats(model, MODEL, test_loader, avg="weighted")
+
+print(f'Test stats (accuracy, RocAuc, f1): {stats}')
