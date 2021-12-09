@@ -27,7 +27,7 @@ BATCH_SIZE = 64
 SHUFFLE = True
 NUM_EPOCHS = 1  # default 10
 PATH = './checkpoints/'
-TRAIN = True
+TRAIN = False
 CHECKPOINT = 0  # last CHECKPOINT = NUM_EPOCHS - 1
 MAX_LEN_BERT = 300
 
@@ -198,11 +198,11 @@ test_accuracy = evaluate(model, test_loader)
 print(f'Test accuracy: {test_accuracy}')
 
 # testing metrics
-'''print(f'Test accuracy: {accuracy(model,MODEL,test_loader)}')
+print(f'Test accuracy: {accuracy(model,MODEL,test_loader)}')
 print(f'Test auroc: {auroc(model,MODEL,test_loader, avg="weighted")}')
-print(f'Test f1: {f1(model,MODEL,test_loader, avg="weighted")}')'''
+print(f'Test f1: {f1(model,MODEL,test_loader, avg="weighted")}')
 
 # all in one statistics: accuracy, roc-auc and f1
-stats = stats(model, MODEL, test_loader, avg="weighted")
+stats_ = stats(model, MODEL, test_loader, avg="weighted")
 
-print(f'Test stats (accuracy, RocAuc, f1): {stats}')
+print(f'Test stats (accuracy, RocAuc, f1): {stats_}')

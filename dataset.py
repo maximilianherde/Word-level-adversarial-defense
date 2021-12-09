@@ -1,11 +1,11 @@
 from torch.utils.data import Dataset
 
 class ClassificationDataset(Dataset):
-    def __init__(self, dataset, num_classes, tokenizer, MODEL):
+    def __init__(self, dataset, num_classes, tokenizer, model):
         self.num_classes = num_classes
         self.dataset = dataset
         self.tokenizer = tokenizer
-        self.model = MODEL
+        self.model = model
 
     def __len__(self):
         return self.dataset.__len__()
