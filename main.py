@@ -31,6 +31,7 @@ PATH = './checkpoints/'
 TRAIN = False
 CHECKPOINT = 0  # last CHECKPOINT = NUM_EPOCHS - 1
 MAX_LEN_BERT = 300
+VECTOR_CACHE = '/cluster/scratch/herdem/glove'
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -55,7 +56,7 @@ elif DATASET == 'YahooAnswers':
 else:
     raise ValueError()
 
-embedding = GloVe(name='6B', dim=50)
+embedding = GloVe(name='6B', dim=50, cache=VECTOR_CACHE)
 
 #train_set = to_map_style_dataset(train_set)
 #test_set = to_map_style_dataset(test_set)
