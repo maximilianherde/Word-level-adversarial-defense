@@ -1,0 +1,1 @@
+BERT_IMDB_CLEAN.pt -> Training Time = 67:08, Testing Time = 17:30, Training Accuracy: 0.908, Test Accuracy: 0.911

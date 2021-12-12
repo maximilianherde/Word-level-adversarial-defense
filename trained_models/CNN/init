@@ -1,0 +1,2 @@
+CNN_AG_NEWS_CLEAN.pt -> Training Time = 5:19, Testing Time = x, Training Accuracy: x, Test Accuracy: 0.8894736842105263
+CNN_IMDB_CLEAN.pt -> Training Time = 19:x, Testing Time = x, Training Accuracy: x, Test Accuracy: 0.81408
