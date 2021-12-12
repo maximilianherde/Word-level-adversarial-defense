@@ -1,7 +1,7 @@
 from torch.utils.data import Dataset
 import pandas as pd
 
-BASIC_PATH = '$SCRATCH'
+BASIC_PATH = '/cluster/scratch/herdem'
 
 
 class AG_NEWS(Dataset):
