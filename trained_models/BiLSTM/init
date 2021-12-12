@@ -1,2 +1,2 @@
 LSTM_AG_NEWS_CLEAN.pt -> Training Time = 19:00, Testing Time = 00:06, Training Accuracy: 0.9050666666666667, Test Accuracy: 0.9007894736842105
-LSTM_IMDB_CLEAN.pt -> Training Time = x:x, Testing Time = 0:x, Training Accuracy: x, Test Accuracy: x (running rn)
+LSTM_IMDB_CLEAN.pt -> Training Time = 178:27, Testing Time = 03:07, Training Accuracy: 0.5746, Test Accuracy: 0.56608
