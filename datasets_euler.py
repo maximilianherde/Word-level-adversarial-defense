@@ -59,7 +59,7 @@ class YahooAnswers(Dataset):
             raise ValueError()
 
     def __len__(self):
-        len(self.dataset.index)
+        return len(self.dataset.index)
 
     def __getitem__(self, idx):
         if self.model == 'BERT':
