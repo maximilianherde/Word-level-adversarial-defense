@@ -24,9 +24,9 @@ class AG_NEWS(Dataset):
 
     def __getitem__(self, idx):
         if self.model == 'BERT':
-            return int(self.dataset.iloc[idx, 0]) - 1, self.tokenizer(self.dataset.iloc[idx, 1], padding='max_length', return_tensors='pt', max_length=512, truncation=True)
+            return int(self.dataset.iloc[idx, 0]) - 1, self.tokenizer(self.dataset.iloc[idx, 1:], padding='max_length', return_tensors='pt', max_length=512, truncation=True)
         else:
-            return int(self.dataset.iloc[idx, 0]) - 1, self.tokenizer(self.dataset.iloc[idx, 1])
+            return int(self.dataset.iloc[idx, 0]) - 1, self.tokenizer(self.dataset.iloc[idx, 1:])
 
 
 class IMDB(Dataset):
