@@ -21,12 +21,12 @@ from pathlib import Path
 from datasets_euler import AG_NEWS, IMDB, YahooAnswers
 import time
 
-DATASET = 'AG_NEWS'  # choose from IMDB, AG_NEWS, YahooAnswers
+DATASET = 'YahooAnswers'  # choose from IMDB, AG_NEWS, YahooAnswers
 MODEL = 'CNN'  # choose from: GRU, LSTM, CNN, BERT, CNN2
 VALIDATION_SPLIT = 0.5  # of test data
-BATCH_SIZE = 64
+BATCH_SIZE = 256
 SHUFFLE = True
-NUM_EPOCHS = 1  # default 10
+NUM_EPOCHS = 5  # default 10
 PATH = './checkpoints/'
 TRAIN = True
 CHECKPOINT = 0  # last CHECKPOINT = NUM_EPOCHS - 1
@@ -187,6 +187,7 @@ elif MODEL == 'CNN2':
     optim = Adam(model.parameters())
 
 if TRAIN:
+    start_time = time.time()
     for epoch in range(NUM_EPOCHS):
         train(model, optim, train_loader)
         val_accuracy = evaluate(model, val_loader)
@@ -198,6 +199,9 @@ if TRAIN:
             'optimizer_state_dict': optim.state_dict(),
             'val_accuracy': val_accuracy
         }, PATH + MODEL + '_' + DATASET + '_' + str(epoch) + '.pt')
+    end_time = time.time()
+    print("elapsed training time (min): ",
+          round((end_time - start_time)/60.0, 3))
 else:
     # load a pretrained model
     PATH_MODEL = PATH + MODEL + '_' + DATASET + '_' + str(CHECKPOINT) + '.pt'
@@ -207,15 +211,31 @@ else:
     epoch = checkpoint['epoch']
     val_accuracy = checkpoint['val_accuracy']
 
-test_accuracy = evaluate(model, test_loader)
-print(f'Test accuracy: {test_accuracy}')
-
-# testing metrics
-print(f'Test accuracy: {accuracy(model,MODEL,test_loader)}')
-print(f'Test auroc: {auroc(model,MODEL,test_loader, avg="weighted")}')
-print(f'Test f1: {f1(model,MODEL,test_loader, avg="weighted")}')
+print("Model :" + str(MODEL) + ", Dataset: " + str(DATASET) +
+      ", Epochs: " + str(NUM_EPOCHS if TRAIN else (CHECKPOINT + 1)))
 
 # all in one statistics: accuracy, roc-auc and f1
-stats_ = stats(model, MODEL, test_loader, avg="weighted")
+stats_t = stats(model, MODEL, train_loader, avg="weighted")
+print(f'Train stats (accuracy, RocAuc, f1): {stats_t}')
 
+start_time_test = time.time()
+
+stats_ = stats(model, MODEL, test_loader, avg="weighted")
 print(f'Test stats (accuracy, RocAuc, f1): {stats_}')
+
+end_time_test = time.time()
+print("elapsed testing time (min): ", round(
+    (end_time_test - start_time_test)/60.0, 3))
+
+# test_accuracy = evaluate(model, test_loader)
+# print(f'Test accuracy: {test_accuracy}')
+
+# # testing metrics
+# print(f'Test accuracy: {accuracy(model,MODEL,test_loader)}')
+# print(f'Test auroc: {auroc(model,MODEL,test_loader, avg="weighted")}')
+# print(f'Test f1: {f1(model,MODEL,test_loader, avg="weighted")}')
+
+# # all in one statistics: accuracy, roc-auc and f1
+# stats_ = stats(model, MODEL, test_loader, avg="weighted")
+
+# print(f'Test stats (accuracy, RocAuc, f1): {stats_}')
