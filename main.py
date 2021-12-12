@@ -22,13 +22,13 @@ from datasets_euler import AG_NEWS, IMDB, YahooAnswers
 import time
 
 DATASET = 'AG_NEWS'  # choose from IMDB, AG_NEWS, YahooAnswers
-MODEL = 'CNN2'  # choose from: GRU, LSTM, CNN, BERT, CNN2
+MODEL = 'CNN'  # choose from: GRU, LSTM, CNN, BERT, CNN2
 VALIDATION_SPLIT = 0.5  # of test data
 BATCH_SIZE = 64
 SHUFFLE = True
 NUM_EPOCHS = 1  # default 10
 PATH = './checkpoints/'
-TRAIN = False
+TRAIN = True
 CHECKPOINT = 0  # last CHECKPOINT = NUM_EPOCHS - 1
 MAX_LEN_BERT = 300
 VECTOR_CACHE = '/cluster/scratch/herdem/glove'
