@@ -1,5 +1,5 @@
 import torch
-from torchtext.datasets import IMDB, AG_NEWS, YahooAnswers
+# from torchtext.datasets import IMDB, AG_NEWS, YahooAnswers
 from torchtext.vocab import GloVe
 from torchtext.data import to_map_style_dataset
 from torchtext.data.utils import get_tokenizer
@@ -18,6 +18,7 @@ from metrics.f1 import f1
 from metrics.stats import stats
 from transformers import BertTokenizer, BertForSequenceClassification, AdamW
 from pathlib import Path
+from datasets_euler import AG_NEWS, IMDB, YahooAnswers
 import time
 
 DATASET = 'AG_NEWS'  # choose from IMDB, AG_NEWS, YahooAnswers
@@ -33,33 +34,34 @@ MAX_LEN_BERT = 300
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+if MODEL == 'BERT':
+    tokenizer = BertTokenizer.from_pretrained(
+        "bert-base-uncased", do_lower_case=True)
+else:
+    tokenizer = get_tokenizer('basic_english')
+
 if DATASET == 'IMDB':
-    train_set = IMDB(split='train')
-    test_set = IMDB(split='test')
+    train_set = IMDB(tokenizer, MODEL, split='train')
+    test_set = IMDB(tokenizer, MODEL, split='test')
     num_classes = 2
 elif DATASET == 'AG_NEWS':
-    train_set = AG_NEWS(split='train')
-    test_set = AG_NEWS(split='test')
+    train_set = AG_NEWS(tokenizer, MODEL, split='train')
+    test_set = AG_NEWS(tokenizer, MODEL, split='test')
     num_classes = 4
 elif DATASET == 'YahooAnswers':
-    train_set = YahooAnswers(split='train')
-    test_set = YahooAnswers(split='test')
+    train_set = YahooAnswers(tokenizer, MODEL, split='train')
+    test_set = YahooAnswers(tokenizer, MODEL, split='test')
     num_classes = 10
 else:
     raise ValueError()
 
-if MODEL == 'BERT':
-    tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
-else:
-    tokenizer = get_tokenizer('basic_english')
-
 embedding = GloVe(name='6B', dim=50)
 
-train_set = to_map_style_dataset(train_set)
-test_set = to_map_style_dataset(test_set)
+#train_set = to_map_style_dataset(train_set)
+#test_set = to_map_style_dataset(test_set)
 
-train_set = ClassificationDataset(train_set, num_classes, tokenizer, MODEL)
-test_set = ClassificationDataset(test_set, num_classes, tokenizer, MODEL)
+#train_set = ClassificationDataset(train_set, num_classes, tokenizer, MODEL)
+#test_set = ClassificationDataset(test_set, num_classes, tokenizer, MODEL)
 test_set, val_set = random_split(test_set, [test_set.__len__() - int(VALIDATION_SPLIT * test_set.__len__(
 )), int(VALIDATION_SPLIT * test_set.__len__())], generator=torch.Generator().manual_seed(42))
 
@@ -74,6 +76,7 @@ def collate_batch(batch):
     label_list = torch.tensor(label_list, dtype=torch.int64)
     return label_list.to(device), text_list.to(device)
 
+
 def collate_BERT(batch):
     label_list, input_ids, token_type_ids, attention_mask = [], [], [], []
     for (_label, _dic) in batch:
@@ -87,24 +90,32 @@ def collate_BERT(batch):
     attention_mask = torch.cat(attention_mask, dim=0).to(device)
     return label_list, input_ids, token_type_ids, attention_mask
 
+
 if MODEL == 'BERT':
-    train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
-    test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
-    val_loader = DataLoader(val_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
+    train_loader = DataLoader(
+        train_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
+    test_loader = DataLoader(
+        test_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
+    val_loader = DataLoader(val_set, batch_size=BATCH_SIZE,
+                            collate_fn=collate_BERT, shuffle=SHUFFLE)
 else:
-    train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, collate_fn=collate_batch, shuffle=SHUFFLE)
-    test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, collate_fn=collate_batch, shuffle=SHUFFLE)
-    val_loader = DataLoader(val_set, batch_size=BATCH_SIZE, collate_fn=collate_batch, shuffle=SHUFFLE)
+    train_loader = DataLoader(
+        train_set, batch_size=BATCH_SIZE, collate_fn=collate_batch, shuffle=SHUFFLE)
+    test_loader = DataLoader(
+        test_set, batch_size=BATCH_SIZE, collate_fn=collate_batch, shuffle=SHUFFLE)
+    val_loader = DataLoader(val_set, batch_size=BATCH_SIZE,
+                            collate_fn=collate_batch, shuffle=SHUFFLE)
 
 
 def evaluate(model, data_loader, loss=CrossEntropyLoss()):
     model.eval()
     total_acc, total_count = 0, 0
-    
+
     with torch.no_grad():
         if MODEL == "BERT":
             for idx, (labels, input_ids, token_type_ids, attention_mask) in enumerate(data_loader):
-                predicted_label = model(input_ids, token_type_ids, attention_mask)
+                predicted_label = model(
+                    input_ids, token_type_ids, attention_mask)
                 loss_ = loss(predicted_label, labels)
                 total_acc += (predicted_label.argmax(1) == labels).sum().item()
                 total_count += labels.size(0)
@@ -114,14 +125,15 @@ def evaluate(model, data_loader, loss=CrossEntropyLoss()):
                 loss_ = loss(predicted_label, labels)
                 total_acc += (predicted_label.argmax(1) == labels).sum().item()
                 total_count += labels.size(0)
-    
+
     return total_acc / total_count
 
 
 def train(model, optimizer, train_loader, loss=CrossEntropyLoss(), log_interval=50):
     model.train()
     total_acc, total_count = 0, 0
-    pbar = tqdm(total=len(train_loader), desc=f'Epoch [{epoch + 1}/{NUM_EPOCHS}]')
+    pbar = tqdm(total=len(train_loader),
+                desc=f'Epoch [{epoch + 1}/{NUM_EPOCHS}]')
 
     if MODEL == 'BERT':
         for idx, (labels, input_ids, token_type_ids, attention_mask) in enumerate(train_loader):
@@ -137,7 +149,7 @@ def train(model, optimizer, train_loader, loss=CrossEntropyLoss(), log_interval=
             if idx % log_interval == 0 and idx > 0:
                 pbar.set_postfix(loss=loss_, accuracy=total_acc / total_count)
                 total_acc, total_count = 0, 0
-        
+
         pbar.close()
     else:
         for idx, (labels, text) in enumerate(train_loader):
@@ -152,7 +164,7 @@ def train(model, optimizer, train_loader, loss=CrossEntropyLoss(), log_interval=
             if idx % log_interval == 0 and idx > 0:
                 pbar.set_postfix(loss=loss_, accuracy=total_acc / total_count)
                 total_acc, total_count = 0, 0
-        
+
         pbar.close()
 
 
