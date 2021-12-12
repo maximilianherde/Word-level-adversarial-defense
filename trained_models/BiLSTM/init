@@ -1,1 +1,2 @@
-init
+LSTM_AG_NEWS_CLEAN.pt -> Training Time = 00:19, Testing Time = 0:00:06, Training Accuracy: 0.9050666666666667, Test Accuracy: 0.9007894736842105
+LSTM_IMDB_CLEAN.pt -> Training Time = x:x, Testing Time = 0:x, Training Accuracy: x, Test Accuracy: x (running rn)
