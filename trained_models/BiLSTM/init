@@ -2,3 +2,4 @@ LSTM_AG_NEWS_CLEAN.pt -> Training Time = 05:31, Testing Time = 00:06, Training A
 LSTM_IMDB_CLEAN.pt -> Training Time = 13:14, Testing Time = 01:26, Training Accuracy: 0.81255, Test Accuracy: 0.80208
 LSTM_YahooAnswers_CLEAN.pt -> Training Time = 118:05, Testing Time = 00:26, Training Accuracy: 0.71697, Test Accuracy: 0.71423
 LSTM_IMDB_WLADL.pt -> Training Time = 92:01, Testing Time = 00:55, Training Accuracy: 0.7831, Test Accuracy: 0.76912
+LSTM_AG_NEWS_WLADL.pt -> Training Time = 71:55, Testing Time = 00:04, Training Accuracy: 0.8943, Test Accuracy: 0.901577
