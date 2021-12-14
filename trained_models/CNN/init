@@ -2,3 +2,4 @@ CNN_AG_NEWS_CLEAN.pt -> Training Time = 02:33, Testing Time = 00:01, Training Ac
 CNN_IMDB_CLEAN.pt -> Training Time = 03:47, Testing Time = 0:11, Training Accuracy: 0.82396, Test Accuracy: 0.80288
 CNN_YahooAnswers_CLEAN.pt -> Training Time = 89:51, Testing time = 0:23, Training Accuracy: 0.631964, Test Accuracy: 0.6322 
 CNN_AG_NEWS_WLADL.pt -> Training Time = 58:48, Testing Time = 00:01, Training Accuracy: 0.87145, Test Accuracy: 0.8811842105263158
+CNN_IMDB_WLADL.pt -> Training Time = 83:50, Testing Time = 00:25, Training Accuracy: 0.76248, Test Accuracy: 0.78932
