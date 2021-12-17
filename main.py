@@ -44,20 +44,27 @@ else:
     tokenizer = get_tokenizer('basic_english')
 
 embedding = GloVe(name='6B', dim=50, cache=VECTOR_CACHE)
+example_thes = None
 if WITH_DEFENSE:
     example_thes = build_thesaurus(embedding.itos)
 
 if DATASET == 'IMDB':
-    train_set = IMDB(tokenizer, MODEL, split='train')
-    test_set = IMDB(tokenizer, MODEL, split='test')
+    train_set = IMDB(tokenizer, MODEL, split='train', with_defense=WITH_DEFENSE,
+                     thesaurus=example_thes, embedding=embedding)
+    test_set = IMDB(tokenizer, MODEL, split='test', with_defense=WITH_DEFENSE,
+                    thesaurus=example_thes, embedding=embedding)
     num_classes = 2
 elif DATASET == 'AG_NEWS':
-    train_set = AG_NEWS(tokenizer, MODEL, split='train')
-    test_set = AG_NEWS(tokenizer, MODEL, split='test')
+    train_set = AG_NEWS(tokenizer, MODEL, split='train',
+                        with_defense=WITH_DEFENSE, thesaurus=example_thes, embedding=embedding)
+    test_set = AG_NEWS(tokenizer, MODEL, split='test', with_defense=WITH_DEFENSE,
+                       thesaurus=example_thes, embedding=embedding)
     num_classes = 4
 elif DATASET == 'YahooAnswers':
-    train_set = YahooAnswers(tokenizer, MODEL, split='train')
-    test_set = YahooAnswers(tokenizer, MODEL, split='test')
+    train_set = YahooAnswers(tokenizer, MODEL, split='train',
+                             with_defense=WITH_DEFENSE, thesaurus=example_thes, embedding=embedding)
+    test_set = YahooAnswers(tokenizer, MODEL, split='test',
+                            with_defense=WITH_DEFENSE, thesaurus=example_thes, embedding=embedding)
     num_classes = 10
 else:
     raise ValueError()
