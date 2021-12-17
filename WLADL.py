@@ -42,7 +42,7 @@ def build_thesaurus(all_words):
     return thesaurus
 
 
-def mask_replace_with_syns_add_noise(sentence, thesaurus, embedding, mask_probability=0.1, synonym_probability=0.25, pos_noise=0.1):
+def mask_replace_with_syns_add_noise(sentence, thesaurus, embedding, model, mask_probability=0.1, synonym_probability=0.25, pos_noise=0.1):
     tokens_to_ret = []
     for word in sentence:
         mask_flag = np.random.choice([0, 1], replace=False, p=[
@@ -69,8 +69,11 @@ def mask_replace_with_syns_add_noise(sentence, thesaurus, embedding, mask_probab
         else:
             tokens_to_ret.append("")
 
-    # We have masked and replaced with synonyms randomly, now obtain embeddings
-    embed = embedding.get_vecs_by_tokens(tokens_to_ret)
+    if model == 'BERT':
+        embed = tokens_to_ret
+    else:
+        # We have masked and replaced with synonyms randomly, now obtain embeddings
+        embed = embedding.get_vecs_by_tokens(tokens_to_ret)
     '''pos_encoding = np.zeros(embed.shape)
     # Positional encoding introduced in Vaswani et. al.
     for i in range(embed.shape[0]):

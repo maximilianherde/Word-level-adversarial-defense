@@ -43,6 +43,10 @@ if MODEL == 'BERT':
 else:
     tokenizer = get_tokenizer('basic_english')
 
+embedding = GloVe(name='6B', dim=50, cache=VECTOR_CACHE)
+if WITH_DEFENSE:
+    example_thes = build_thesaurus(embedding.itos)
+
 if DATASET == 'IMDB':
     train_set = IMDB(tokenizer, MODEL, split='train')
     test_set = IMDB(tokenizer, MODEL, split='test')
@@ -58,8 +62,6 @@ elif DATASET == 'YahooAnswers':
 else:
     raise ValueError()
 
-embedding = GloVe(name='6B', dim=50, cache=VECTOR_CACHE)
-
 #train_set = to_map_style_dataset(train_set)
 #test_set = to_map_style_dataset(test_set)
 
@@ -67,9 +69,6 @@ embedding = GloVe(name='6B', dim=50, cache=VECTOR_CACHE)
 #test_set = ClassificationDataset(test_set, num_classes, tokenizer, MODEL)
 test_set, val_set = random_split(test_set, [test_set.__len__() - int(VALIDATION_SPLIT * test_set.__len__(
 )), int(VALIDATION_SPLIT * test_set.__len__())], generator=torch.Generator().manual_seed(42))
-
-if WITH_DEFENSE:
-    example_thes = build_thesaurus(embedding.itos)
 
 
 def collate_batch(batch):
@@ -88,7 +87,7 @@ def collate_defense_batch(batch):
     for (_label, _tokens) in batch:
         label_list.append(_label)
         embed = mask_replace_with_syns_add_noise(
-            _tokens, example_thes, embedding)
+            _tokens, example_thes, embedding, MODEL)
         text_list.append(embed)
     label_list = torch.tensor(label_list, dtype=torch.int64)
     text_list = pad_sequence(text_list, batch_first=True)
