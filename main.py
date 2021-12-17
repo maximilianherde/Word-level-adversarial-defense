@@ -20,15 +20,17 @@ from transformers import BertTokenizer, BertForSequenceClassification, AdamW
 from pathlib import Path
 from datasets_euler import AG_NEWS, IMDB, YahooAnswers
 import time
+from WLADL import build_thesaurus, mask_replace_with_syns_add_noise
 
 DATASET = 'YahooAnswers'  # choose from IMDB, AG_NEWS, YahooAnswers
-MODEL = 'CNN'  # choose from: GRU, LSTM, CNN, BERT, CNN2
+MODEL = 'BERT'  # choose from: GRU, LSTM, CNN, BERT, CNN2
 VALIDATION_SPLIT = 0.5  # of test data
 BATCH_SIZE = 256
 SHUFFLE = True
 NUM_EPOCHS = 5  # default 10
 PATH = './checkpoints/'
 TRAIN = True
+WITH_DEFENSE = True
 CHECKPOINT = 0  # last CHECKPOINT = NUM_EPOCHS - 1
 MAX_LEN_BERT = 300
 VECTOR_CACHE = '/cluster/scratch/herdem/glove'
@@ -56,7 +58,7 @@ elif DATASET == 'YahooAnswers':
 else:
     raise ValueError()
 
-embedding = GloVe(name='6B', dim=50, cache=VECTOR_CACHE)
+embedding = GloVe(name='6B', dim=50)  # , cache=VECTOR_CACHE)
 
 #train_set = to_map_style_dataset(train_set)
 #test_set = to_map_style_dataset(test_set)
@@ -65,6 +67,9 @@ embedding = GloVe(name='6B', dim=50, cache=VECTOR_CACHE)
 #test_set = ClassificationDataset(test_set, num_classes, tokenizer, MODEL)
 test_set, val_set = random_split(test_set, [test_set.__len__() - int(VALIDATION_SPLIT * test_set.__len__(
 )), int(VALIDATION_SPLIT * test_set.__len__())], generator=torch.Generator().manual_seed(42))
+
+if WITH_DEFENSE:
+    example_thes = build_thesaurus(embedding.itos)
 
 
 def collate_batch(batch):
@@ -75,6 +80,18 @@ def collate_batch(batch):
         text_list.append(embed)
     text_list = pad_sequence(text_list, batch_first=True)
     label_list = torch.tensor(label_list, dtype=torch.int64)
+    return label_list.to(device), text_list.to(device)
+
+
+def collate_defense_batch(batch):
+    label_list, text_list = [], []
+    for (_label, _tokens) in batch:
+        label_list.append(_label)
+        embed = mask_replace_with_syns_add_noise(
+            _tokens, example_thes, embedding)
+        text_list.append(embed)
+    label_list = torch.tensor(label_list, dtype=torch.int64)
+    text_list = pad_sequence(text_list, batch_first=True)
     return label_list.to(device), text_list.to(device)
 
 
@@ -92,20 +109,36 @@ def collate_BERT(batch):
     return label_list, input_ids, token_type_ids, attention_mask
 
 
-if MODEL == 'BERT':
-    train_loader = DataLoader(
-        train_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
-    test_loader = DataLoader(
-        test_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
-    val_loader = DataLoader(val_set, batch_size=BATCH_SIZE,
-                            collate_fn=collate_BERT, shuffle=SHUFFLE)
+if WITH_DEFENSE:
+    if MODEL == 'BERT':
+        train_loader = DataLoader(
+            train_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
+        test_loader = DataLoader(
+            test_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
+        val_loader = DataLoader(val_set, batch_size=BATCH_SIZE,
+                                collate_fn=collate_BERT, shuffle=SHUFFLE)
+    else:
+        train_loader = DataLoader(
+            train_set, batch_size=BATCH_SIZE, collate_fn=collate_defense_batch, shuffle=SHUFFLE)
+        test_loader = DataLoader(
+            test_set, batch_size=BATCH_SIZE, collate_fn=collate_defense_batch, shuffle=SHUFFLE)
+        val_loader = DataLoader(val_set, batch_size=BATCH_SIZE,
+                                collate_fn=collate_defense_batch, shuffle=SHUFFLE)
 else:
-    train_loader = DataLoader(
-        train_set, batch_size=BATCH_SIZE, collate_fn=collate_batch, shuffle=SHUFFLE)
-    test_loader = DataLoader(
-        test_set, batch_size=BATCH_SIZE, collate_fn=collate_batch, shuffle=SHUFFLE)
-    val_loader = DataLoader(val_set, batch_size=BATCH_SIZE,
-                            collate_fn=collate_batch, shuffle=SHUFFLE)
+    if MODEL == 'BERT':
+        train_loader = DataLoader(
+            train_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
+        test_loader = DataLoader(
+            test_set, batch_size=BATCH_SIZE, collate_fn=collate_BERT, shuffle=SHUFFLE)
+        val_loader = DataLoader(val_set, batch_size=BATCH_SIZE,
+                                collate_fn=collate_BERT, shuffle=SHUFFLE)
+    else:
+        train_loader = DataLoader(
+            train_set, batch_size=BATCH_SIZE, collate_fn=collate_batch, shuffle=SHUFFLE)
+        test_loader = DataLoader(
+            test_set, batch_size=BATCH_SIZE, collate_fn=collate_batch, shuffle=SHUFFLE)
+        val_loader = DataLoader(val_set, batch_size=BATCH_SIZE,
+                                collate_fn=collate_batch, shuffle=SHUFFLE)
 
 
 def evaluate(model, data_loader, loss=CrossEntropyLoss()):
