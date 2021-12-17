@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import nltk
 from nltk.corpus import wordnet as wn
+from tqdm import tqdm
 
 
 def build_thesaurus(all_words):
@@ -10,9 +11,8 @@ def build_thesaurus(all_words):
     syns = []
     length_thesaurus = len(all_words)
 
+    pbar = tqdm(total=length_thesaurus, desc='Build thesaurus')
     for i in range(length_thesaurus):
-        if i % 10000 == 0:
-            print("At index {} of the vocabulary".format(i))
         # Extract the word
         token = all_words[i]
 
@@ -36,6 +36,9 @@ def build_thesaurus(all_words):
             thesaurus[token] = syns
             syns = []
 
+        pbar.update()
+
+    pbar.close()
     return thesaurus
 
 

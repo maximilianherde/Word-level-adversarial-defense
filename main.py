@@ -58,7 +58,7 @@ elif DATASET == 'YahooAnswers':
 else:
     raise ValueError()
 
-embedding = GloVe(name='6B', dim=50)  # , cache=VECTOR_CACHE)
+embedding = GloVe(name='6B', dim=50, cache=VECTOR_CACHE)
 
 #train_set = to_map_style_dataset(train_set)
 #test_set = to_map_style_dataset(test_set)
