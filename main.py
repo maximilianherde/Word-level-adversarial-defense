@@ -20,24 +20,51 @@ from transformers import BertTokenizer, BertForSequenceClassification, AdamW
 from pathlib import Path
 from datasets_euler import AG_NEWS, IMDB, YahooAnswers
 import time
+import os
+import sys
 from WLADL import build_thesaurus, mask_replace_with_syns_add_noise
 
-DATASET = 'YahooAnswers'  # choose from IMDB, AG_NEWS, YahooAnswers
-MODEL = 'BERT'  # choose from: GRU, LSTM, CNN, BERT, CNN2
-VALIDATION_SPLIT = 0.5  # of test data
-BATCH_SIZE = 256
-SHUFFLE = True
-NUM_EPOCHS = 5  # default 10
+if len(sys.argv) == 1:
+    print(
+        'Usage: python main.py MODEL DATASET BATCH_SIZE GLOVE_CACHE_PATH TRANSFORMERS_CACHE_PATH ON_CLUSTER CHECKPOINT TRAIN [NUM_EPOCHS] [WITH_DEFENSE]')
+    print('Choices for MODEL: GRU, LSTM, CNN, BERT, CNN2')
+    print('Choices for DATASET: IMDB, AG_NEWS, YahooAnswers')
+    exit()
+else:
+    MODEL = sys.argv[1]
+    DATASET = sys.argv[2]
+    BATCH_SIZE = int(sys.argv[3])
+    VECTOR_CACHE = sys.argv[4]
+    TRANSFORMERS_CACHE = sys.argv[5]
+    if sys.argv[6] == 'True':
+        CLUSTER = True
+    else:
+        CLUSTER = False
+    # 0 if training from scratch, last CHECKPOINT = NUM_EPOCHS - 1
+    CHECKPOINT = int(sys.argv[7])
+    if sys.argv[8] == 'True':
+        TRAIN = True
+        NUM_EPOCHS = int(sys.argv[9])
+        if sys.argv[10] == 'True':
+            WITH_DEFENSE = True
+        else:
+            WITH_DEFENSE = False
+    else:
+        TRAIN = False
+        NUM_EPOCHS = 0
+        WITH_DEFENSE = False
+
 PATH = './checkpoints/'
-TRAIN = True
-WITH_DEFENSE = True
-CHECKPOINT = 0  # last CHECKPOINT = NUM_EPOCHS - 1
+VALIDATION_SPLIT = 0.5  # of test data
+SHUFFLE = True
 MAX_LEN_BERT = 300
-VECTOR_CACHE = '/cluster/scratch/herdem/glove'
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 if MODEL == 'BERT':
+    if CLUSTER:
+        os.environ['TRANSFORMERS_OFFLINE'] = '1'
+        os.environ['TRANSFORMERS_CACHE'] = TRANSFORMERS_CACHE
     tokenizer = BertTokenizer.from_pretrained(
         "bert-base-uncased", do_lower_case=True)
 else:
@@ -46,7 +73,7 @@ else:
 embedding = GloVe(name='6B', dim=50, cache=VECTOR_CACHE)
 example_thes = None
 if WITH_DEFENSE:
-    example_thes = build_thesaurus(embedding.itos)
+    example_thes = build_thesaurus(embedding.itos, not CLUSTER)
 
 if DATASET == 'IMDB':
     train_set = IMDB(tokenizer, MODEL, split='train', with_defense=WITH_DEFENSE,
@@ -69,11 +96,11 @@ elif DATASET == 'YahooAnswers':
 else:
     raise ValueError()
 
-#train_set = to_map_style_dataset(train_set)
-#test_set = to_map_style_dataset(test_set)
+# train_set = to_map_style_dataset(train_set)
+# test_set = to_map_style_dataset(test_set)
 
-#train_set = ClassificationDataset(train_set, num_classes, tokenizer, MODEL)
-#test_set = ClassificationDataset(test_set, num_classes, tokenizer, MODEL)
+# train_set = ClassificationDataset(train_set, num_classes, tokenizer, MODEL)
+# test_set = ClassificationDataset(test_set, num_classes, tokenizer, MODEL)
 test_set, val_set = random_split(test_set, [test_set.__len__() - int(VALIDATION_SPLIT * test_set.__len__(
 )), int(VALIDATION_SPLIT * test_set.__len__())], generator=torch.Generator().manual_seed(42))
 
@@ -185,9 +212,12 @@ def train(model, optimizer, train_loader, loss=CrossEntropyLoss(), log_interval=
             optimizer.step()
             total_acc += (output.argmax(1) == labels).sum().item()
             total_count += labels.size(0)
-            pbar.update()
+            if not CLUSTER:
+                pbar.update()
             if idx % log_interval == 0 and idx > 0:
-                pbar.set_postfix(loss=loss_, accuracy=total_acc / total_count)
+                if not CLUSTER:
+                    pbar.set_postfix(
+                        loss=loss_, accuracy=total_acc / total_count)
                 total_acc, total_count = 0, 0
 
         pbar.close()
@@ -200,9 +230,12 @@ def train(model, optimizer, train_loader, loss=CrossEntropyLoss(), log_interval=
             optimizer.step()
             total_acc += (output.argmax(1) == labels).sum().item()
             total_count += labels.size(0)
-            pbar.update()
+            if not CLUSTER:
+                pbar.update()
             if idx % log_interval == 0 and idx > 0:
-                pbar.set_postfix(loss=loss_, accuracy=total_acc / total_count)
+                if not CLUSTER:
+                    pbar.set_postfix(
+                        loss=loss_, accuracy=total_acc / total_count)
                 total_acc, total_count = 0, 0
 
         pbar.close()
@@ -224,6 +257,8 @@ elif MODEL == 'BERT':
 elif MODEL == 'CNN2':
     model = CNNClassifier2(num_classes).to(device)
     optim = Adam(model.parameters())
+else:
+    raise ValueError()
 
 if TRAIN:
     start_time = time.time()
@@ -265,16 +300,3 @@ print(f'Test stats (accuracy, RocAuc, f1): {stats_}')
 end_time_test = time.time()
 print("elapsed testing time (min): ", round(
     (end_time_test - start_time_test)/60.0, 3))
-
-# test_accuracy = evaluate(model, test_loader)
-# print(f'Test accuracy: {test_accuracy}')
-
-# # testing metrics
-# print(f'Test accuracy: {accuracy(model,MODEL,test_loader)}')
-# print(f'Test auroc: {auroc(model,MODEL,test_loader, avg="weighted")}')
-# print(f'Test f1: {f1(model,MODEL,test_loader, avg="weighted")}')
-
-# # all in one statistics: accuracy, roc-auc and f1
-# stats_ = stats(model, MODEL, test_loader, avg="weighted")
-
-# print(f'Test stats (accuracy, RocAuc, f1): {stats_}')

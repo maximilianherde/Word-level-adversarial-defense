@@ -5,7 +5,7 @@ from nltk.corpus import wordnet as wn
 from tqdm import tqdm
 
 
-def build_thesaurus(all_words):
+def build_thesaurus(all_words, pbar_update=True):
     # Expects torch.vocab.itos dictionary to extract thesaurus
     thesaurus = {}
     syns = []
@@ -35,8 +35,8 @@ def build_thesaurus(all_words):
 
             thesaurus[token] = syns
             syns = []
-
-        pbar.update()
+        if pbar_update:
+            pbar.update()
 
     pbar.close()
     return thesaurus
