@@ -261,12 +261,22 @@ else:
     raise ValueError()
 
 if TRAIN:
+    if CHECKPOINT != 0:
+        # load from checkpoint then train
+        # load a pretrained model
+        PATH_MODEL = PATH + MODEL + '_' + \
+            DATASET + '_' + str(CHECKPOINT) + '.pt'
+        checkpoint = torch.load(PATH_MODEL)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optim.load_state_dict(checkpoint['optimizer_state_dict'])
+        epochs_already_done = checkpoint['epoch'] + 1
+        val_accuracy = checkpoint['val_accuracy']
+    # creates checkpoints directory if not existing yet
+    Path(PATH).mkdir(parents=True, exist_ok=True)
     start_time = time.time()
-    for epoch in range(NUM_EPOCHS):
+    for epoch in range(epochs_already_done, NUM_EPOCHS + epochs_already_done):
         train(model, optim, train_loader)
         val_accuracy = evaluate(model, val_loader)
-        # creates checkpoints directory if not existing yet
-        Path("./checkpoints").mkdir(parents=True, exist_ok=True)
         torch.save({
             'epoch': epoch,
             'model_state_dict': model.state_dict(),
