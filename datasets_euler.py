@@ -53,9 +53,9 @@ class IMDB(Dataset):
             self.thesaurus = thesaurus
             self.embedding = embedding
 
-        def yield_data(label, files):
+        def yield_data(label, files, path):
             for file in files:
-                with io.open(file, encoding='utf8') as f:
+                with io.open(path + file, encoding='utf8') as f:
                     yield label, f.read()
         if split == 'train':
             filelist_pos = os.listdir(
@@ -69,10 +69,10 @@ class IMDB(Dataset):
                 BASIC_PATH + '/IMDB/aclImdb/' + split + '/neg')
         else:
             raise ValueError()
-        df_pos = pd.DataFrame(yield_data(1, filelist_pos),
-                              index=['label', 'data'])
-        df_neg = pd.DataFrame(yield_data(0, filelist_neg),
-                              index=['label', 'data'])
+        df_pos = pd.DataFrame(yield_data(1, filelist_pos, BASIC_PATH + '/IMDB/aclImdb/' + split + '/pos/'),
+                              columns=['label', 'data'])
+        df_neg = pd.DataFrame(yield_data(0, filelist_neg, BASIC_PATH + '/IMDB/aclImdb/' + split + '/neg/'),
+                              columns=['label', 'data'])
         self.dataset = pd.concat([df_pos, df_neg])
 
     def __len__(self):

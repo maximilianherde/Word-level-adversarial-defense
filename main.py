@@ -261,6 +261,7 @@ else:
     raise ValueError()
 
 if TRAIN:
+    epochs_already_done = 0
     if CHECKPOINT != 0:
         # load from checkpoint then train
         # load a pretrained model
