@@ -81,11 +81,11 @@ class IMDB(Dataset):
     def __getitem__(self, idx):
         if self.model == 'BERT':
             if self.with_defense:
-                return int(self.dataset.iloc[idx, 0]) - 1, self.tokenizer(' '.join(mask_replace_with_syns_add_noise(self.temp_tokenizer(' '.join((self.dataset.iloc[idx, 1:]).map(str))), self.thesaurus, self.embedding, self.model)), padding='max_length', return_tensors='pt', max_length=512, truncation=True)
+                return int(self.dataset.iloc[idx, 0]), self.tokenizer(' '.join(mask_replace_with_syns_add_noise(self.temp_tokenizer(' '.join((self.dataset.iloc[idx, 1:]).map(str))), self.thesaurus, self.embedding, self.model)), padding='max_length', return_tensors='pt', max_length=512, truncation=True)
             else:
-                return int(self.dataset.iloc[idx, 0]) - 1, self.tokenizer(' '.join((self.dataset.iloc[idx, 1:]).map(str)), padding='max_length', return_tensors='pt', max_length=512, truncation=True)
+                return int(self.dataset.iloc[idx, 0]), self.tokenizer(' '.join((self.dataset.iloc[idx, 1:]).map(str)), padding='max_length', return_tensors='pt', max_length=512, truncation=True)
         else:
-            return int(self.dataset.iloc[idx, 0]) - 1, self.tokenizer(' '.join((self.dataset.iloc[idx, 1:]).map(str)))
+            return int(self.dataset.iloc[idx, 0]), self.tokenizer(' '.join((self.dataset.iloc[idx, 1:]).map(str)))
 
 
 class YahooAnswers(Dataset):
