@@ -62,9 +62,9 @@ MAX_LEN_BERT = 300
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 if MODEL == 'BERT':
-    if CLUSTER:
-        os.environ['TRANSFORMERS_OFFLINE'] = '1'
-        os.environ['TRANSFORMERS_CACHE'] = TRANSFORMERS_CACHE
+    #if CLUSTER:
+    #    os.environ['TRANSFORMERS_OFFLINE'] = '1'
+    #    os.environ['TRANSFORMERS_CACHE'] = TRANSFORMERS_CACHE
     tokenizer = BertTokenizer.from_pretrained(
         "bert-base-uncased", do_lower_case=True)
 else:
