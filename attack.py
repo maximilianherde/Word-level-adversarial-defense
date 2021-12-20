@@ -1,10 +1,14 @@
 import textattack
 import sys
+from textattack import datasets
 import torch
 from models.BiRLM import BidirectionalGRUClassifier, BidirectionalLSTMClassifier
 from torchtext.vocab import GloVe
 from models.CNN import CNNClassifier, CNNClassifier2
 from models.BERT import BERTClassifier
+from torchtext.data.utils import get_tokenizer
+from transformers import BertTokenizer
+from datasets_euler import AG_NEWS, IMDB, YahooAnswers
 from attackutils.modelwrapper import CustomPyTorchModelWrapper, CustomBERTModelWrapper
 
 # When running on Euler, set TA_CACHE_DIR to a scratch dir, then run the script on a login node to cache the datasets
@@ -34,16 +38,23 @@ model_name = MODEL + '_' + DATASET + '_' + VERSION
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+if MODEL == 'BERT':
+    tokenizer = BertTokenizer.from_pretrained(
+        "bert-base-uncased", do_lower_case=True)
+else:
+    tokenizer = get_tokenizer('basic_english')
+
 if DATASET == "AG_NEWS":
-    dataset = textattack.datasets.HuggingFaceDataset("ag_news", split="test")
+    dataset = AG_NEWS(tokenizer, MODEL, split='test')
+    dataset = textattack.datasets.HuggingFaceDataset(datasets)
     num_classes = 4
 elif DATASET == "IMDB":
-    dataset = textattack.datasets.HuggingFaceDataset(
-        "imdb", split="test", label_map={'pos': 1, 'neg': 0})
+    dataset = IMDB(tokenizer, MODEL, split='test')
+    dataset = textattack.datasets.HuggingFaceDataset(dataset)
     num_classes = 2
 elif DATASET == "YahooAnswers":
-    dataset = textattack.datasets.HuggingFaceDataset(
-        "yahoo_answers", split="test")
+    dataset = YahooAnswers(tokenizer, MODEL, split='test')
+    dataset = textattack.datasets.HuggingFaceDataset(dataset)
     num_classes = 10
 else:
     raise ValueError()
