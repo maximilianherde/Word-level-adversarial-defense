@@ -27,6 +27,8 @@ else:
     CSV_PATH = sys.argv[7]
     VERSION = sys.argv[8]
 
+print(f'Running with: {MODEL} {DATASET} {VECTOR_CACHE} {TRANSFORMERS_CACHE} {MODEL_PATH} {ATTACK_NAME} {CSV_PATH} {VERSION}')
+
 
 model_name = MODEL + '_' + DATASET + '_' + VERSION
 
