@@ -3,3 +3,7 @@ CNN_IMDB_CLEAN.pt -> Training Time = 03:47, Testing Time = 0:11, Training Accura
 CNN_YahooAnswers_CLEAN.pt -> Training Time = 89:51, Testing time = 0:23, Training Accuracy: 0.631964, Test Accuracy: 0.6322 
 CNN_AG_NEWS_WLADL.pt -> Training Time = 58:48, Testing Time = 00:01, Training Accuracy: 0.87145, Test Accuracy: 0.8811842105263158
 CNN_IMDB_WLADL.pt -> Training Time = 83:50, Testing Time = 00:25, Training Accuracy: 0.76248, Test Accuracy: 0.78932
+CNN_AG_NEWS_PWWS.pt -> Training Time = 03:15, Testing Time = 00:01, Training Accuracy: 0.8915243260746377, Test Accuracy: 0.8877631578947368
+CNN_IMDB_PWWS.pt -> Training Time = 02:51, Testing Time = 00:29, Training Accuracy: 0.8295547029415185, Test Accuracy: 0.81356
+CNN_YahooAnswers_PWWS.pt -> Training Time = 78:25, Testing Time = 00:34, Training Accuracy: 0.6327677611744424, Test Accuracy: 0.6333666666666666
+
