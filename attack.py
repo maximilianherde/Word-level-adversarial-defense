@@ -38,7 +38,8 @@ if DATASET == "AG_NEWS":
     dataset = textattack.datasets.HuggingFaceDataset("ag_news", split="test")
     num_classes = 4
 elif DATASET == "IMDB":
-    dataset = textattack.datasets.HuggingFaceDataset("imdb", split="test")
+    dataset = textattack.datasets.HuggingFaceDataset(
+        "imdb", split="test", label_map={'pos': 1, 'neg': 0})
     num_classes = 2
 elif DATASET == "YahooAnswers":
     dataset = textattack.datasets.HuggingFaceDataset(
