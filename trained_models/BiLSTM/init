@@ -6,3 +6,4 @@ LSTM_AG_NEWS_WLADL.pt -> Training Time = 71:55, Testing Time = 00:04, Training A
 LSTM_AG_NEWS_PWWS.pt -> Training Time = 06:01, Testing Time = 00:10, Training Accuracy: 0.905, Test Accuracy: 0.9010
 LSTM_IMDB_PWWS.pt -> Training Time = 07:22, Testing Time = 01:06, Training Accuracy: 0.828, Test Accuracy: 0.8119
 LSTM_YahooAnswers_PWWS.pt -> Training Time = 251:12, Testing Time = 01:41, Training Accuracy: 0.7291, Test Accuracy: 0.7154
+LSTM_AG_NEWS_SOM_4.5.pt -> Training Time = 05:00, Testing Time = 00:06, Training Accuracy: 0.893, Test Accuracy: 0.88212
