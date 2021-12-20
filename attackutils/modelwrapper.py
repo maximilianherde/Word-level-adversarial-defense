@@ -5,7 +5,7 @@ from transformers import BertTokenizer
 
 
 class CustomPyTorchModelWrapper(textattack.models.wrappers.model_wrapper.ModelWrapper):
-    def __init__(self, model, outdim, vocab=torchtext.vocab.GloVe("6B", dim=50), tokenizer=torchtext.data.utils.get_tokenizer("basic_english")):
+    def __init__(self, model, outdim, vocab, tokenizer=torchtext.data.utils.get_tokenizer("basic_english")):
         self.model = model
         self.tokenizer = tokenizer
         self.outdim = outdim
