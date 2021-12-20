@@ -6,4 +6,9 @@ CNN_IMDB_WLADL.pt -> Training Time = 83:50, Testing Time = 00:25, Training Accur
 CNN_AG_NEWS_PWWS.pt -> Training Time = 03:15, Testing Time = 00:01, Training Accuracy: 0.8915243260746377, Test Accuracy: 0.8877631578947368
 CNN_IMDB_PWWS.pt -> Training Time = 02:51, Testing Time = 00:29, Training Accuracy: 0.8295547029415185, Test Accuracy: 0.81356
 CNN_YahooAnswers_PWWS.pt -> Training Time = 78:25, Testing Time = 00:34, Training Accuracy: 0.6327677611744424, Test Accuracy: 0.6333666666666666
-
+CNN_AG_NEWS_SOM_0.5.pt -> Training Time = 01:40, Testing Time = 00:01, Training Accuracy: 0.8951583333333333, Test Accuracy: 0.8853947368421052
+CNN_AG_NEWS_SOM_1.0.pt -> Training Time = 01:41, Testing Time = 00:01, Training Accuracy: 0.9, Test Accuracy: 0.888421052631579
+CNN_AG_NEWS_SOM_2.0.pt -> Training Time = 01:40, Testing Time = 00:01, Training Accuracy: 0.896575, Test Accuracy: 0.8892105263157895
+CNN_AG_NEWS_SOM_3.1.pt -> Training Time = 01:39, Testing Time = 00:01, Training Accuracy: 0.8925083333333333, Test Accuracy: 0.8831578947368421
+CNN_AG_NEWS_SOM_4.0.pt -> Training Time = 01:41, Testing Time = 00:01, Training Accuracy: 0.87785, Test Accuracy: 0.8685526315789474
+CNN_AG_NEWS_SOM_4.5.pt -> Training Time = 01:40, Testing Time = 00:01, Training Accuracy: 0.8749916666666666, Test Accuracy: 0.8653947368421052
