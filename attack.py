@@ -2,16 +2,31 @@ import textattack
 import sys
 import torch
 from models.BiRLM import BidirectionalGRUClassifier, BidirectionalLSTMClassifier
+from torchtext.vocab import GloVe
 from models.CNN import CNNClassifier, CNNClassifier2
 from models.BERT import BERTClassifier
 from attackutils.modelwrapper import CustomPyTorchModelWrapper, CustomBERTModelWrapper
 
-MODEL = 'CNN'
-MODEL_PATH = '~'
-DATASET = 'AG_NEWS'
-ATTACK_NAME = 'PWWS'
-CSV_PATH = '~'
-VERSION = 'CLEAN'
+# When running on Euler, set TA_CACHE_DIR to a scratch dir, then run the script on a login node to cache the datasets
+
+if len(sys.argv) == 1:
+    print(
+        'Usage: python attack.py MODEL DATASET GLOVE_CACHE_PATH TRANSFORMERS_CACHE_PATH MODEL_PATH ATTACK_NAME CSV_PATH VERSION')
+    print('Choices for MODEL: GRU, LSTM, CNN, BERT, CNN2')
+    print('Choices for DATASET: IMDB, AG_NEWS, YahooAnswers')
+    print('Choices for ATTACK_NAME: PWWS, BAE, FGA')
+    print('Choices for VERSION: CLEAN, WLADL')
+    exit()
+else:
+    MODEL = sys.argv[1]
+    DATASET = sys.argv[2]
+    VECTOR_CACHE = sys.argv[3]
+    TRANSFORMERS_CACHE = sys.argv[4]
+    MODEL_PATH = sys.argv[5]
+    ATTACK_NAME = sys.argv[6]
+    CSV_PATH = sys.argv[7]
+    VERSION = sys.argv[8]
+
 
 model_name = MODEL + '_' + DATASET + '_' + VERSION
 
@@ -51,7 +66,8 @@ model.eval()
 if MODEL == 'BERT':
     model_wrapper = CustomBERTModelWrapper(model, outdim=num_classes)
 else:
-    model_wrapper = CustomPyTorchModelWrapper(model, outdim=num_classes)
+    model_wrapper = CustomPyTorchModelWrapper(
+        model, outdim=num_classes, vocab=GloVe(name='6B', dim=50, cache=VECTOR_CACHE))
 
 if ATTACK_NAME == 'PWWS':
     attack = textattack.attack_recipes.pwws_ren_2019.PWWSRen2019.build(
