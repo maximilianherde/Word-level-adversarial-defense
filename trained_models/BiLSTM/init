@@ -9,3 +9,4 @@ LSTM_YahooAnswers_PWWS.pt -> Training Time = 251:12, Testing Time = 01:41, Train
 LSTM_AG_NEWS_SOM_4.5.pt -> Training Time = 05:00, Testing Time = 00:06, Training Accuracy: 0.893, Test Accuracy: 0.88212
 LSTM_AG_NEWS_SOM_4.0.pt -> Training Time = 05:00, Testing Time = 00:06, Training Accuracy: 0.896, Test Accuracy: 0.88721
 LSTM_AG_NEWS_SOM_3.1.pt -> Training Time = 05:00, Testing Time = 00:07, Training Accuracy: 0.911, Test Accuracy: 0.90383
+LSTM_IMDB_SOM_3.1.pt -> Training Time = 06:25, Testing Time = 00:38, Training Accuracy: 0.78724, Test Accuracy: 0.78132
