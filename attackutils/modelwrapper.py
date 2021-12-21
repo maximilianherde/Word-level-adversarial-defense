@@ -10,6 +10,7 @@ class CustomPyTorchModelWrapper(textattack.models.wrappers.model_wrapper.ModelWr
         self.tokenizer = tokenizer
         self.outdim = outdim
         self.vocab = vocab
+        self.device = device
 
     def __call__(self, text_input_list):
         preds = torch.zeros(size=(len(text_input_list), self.outdim))
@@ -18,7 +19,7 @@ class CustomPyTorchModelWrapper(textattack.models.wrappers.model_wrapper.ModelWr
             input = self.vocab.get_vecs_by_tokens(tokens)
             with torch.no_grad():
                 prediction = self.model(
-                    torch.unsqueeze(input, dim=0).to(device))
+                    torch.unsqueeze(input, dim=0).to(self.device))
                 preds[i] = prediction
 
         return preds
@@ -30,6 +31,7 @@ class CustomBERTModelWrapper(textattack.models.wrappers.model_wrapper.ModelWrapp
         self.model = model
         self.tokenizer = tokenizer
         self.outdim = outdim
+        self.device = device
 
     def __call__(self, text_input_list):
         preds = torch.zeros(size=(len(text_input_list), self.outdim))
@@ -37,8 +39,8 @@ class CustomBERTModelWrapper(textattack.models.wrappers.model_wrapper.ModelWrapp
             dict_ = self.tokenizer(
                 review, padding="max_length", return_tensors='pt', max_length=512, truncation=True)
             with torch.no_grad():
-                prediction = self.model(dict_["input_ids"].to(device), dict_[
-                                        "token_type_ids"].to(device), dict_["attention_mask"].to(device))
+                prediction = self.model(dict_["input_ids"].to(self.device), dict_[
+                                        "token_type_ids"].to(self.device), dict_["attention_mask"].to(self.device))
                 preds[i] = prediction
 
         return preds
