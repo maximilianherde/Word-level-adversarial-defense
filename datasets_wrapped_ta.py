@@ -13,7 +13,7 @@ def get_textattack_IMDB():
     dataset = imdb.dataset
     new_order_columns = ['data', 'label']
     new_dataset = dataset.reindex(columns=new_order_columns)
-    return textattack.datasets.Dataset(new_dataset.tolist())
+    return textattack.datasets.Dataset(new_dataset.values.tolist())
 
 
 def get_textattack_YahooAnswers():
