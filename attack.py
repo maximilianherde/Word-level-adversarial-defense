@@ -74,10 +74,11 @@ model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
 
 if MODEL == 'BERT':
-    model_wrapper = CustomBERTModelWrapper(model, outdim=num_classes)
+    model_wrapper = CustomBERTModelWrapper(
+        model, outdim=num_classes, device=device)
 else:
     model_wrapper = CustomPyTorchModelWrapper(
-        model, outdim=num_classes, vocab=GloVe(name='6B', dim=50, cache=VECTOR_CACHE))
+        model, outdim=num_classes, vocab=GloVe(name='6B', dim=50, cache=VECTOR_CACHE), device=device)
 
 if ATTACK_NAME == 'PWWS':
     attack = textattack.attack_recipes.pwws_ren_2019.PWWSRen2019.build(

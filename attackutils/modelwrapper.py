@@ -5,7 +5,7 @@ from transformers import BertTokenizer
 
 
 class CustomPyTorchModelWrapper(textattack.models.wrappers.model_wrapper.ModelWrapper):
-    def __init__(self, model, outdim, vocab, tokenizer=torchtext.data.utils.get_tokenizer("basic_english")):
+    def __init__(self, model, outdim, vocab, device, tokenizer=torchtext.data.utils.get_tokenizer("basic_english")):
         self.model = model
         self.tokenizer = tokenizer
         self.outdim = outdim
@@ -26,7 +26,7 @@ class CustomPyTorchModelWrapper(textattack.models.wrappers.model_wrapper.ModelWr
 
 class CustomBERTModelWrapper(textattack.models.wrappers.model_wrapper.ModelWrapper):
 
-    def __init__(self, model, outdim, tokenizer=BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)):
+    def __init__(self, model, outdim, device, tokenizer=BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)):
         self.model = model
         self.tokenizer = tokenizer
         self.outdim = outdim
