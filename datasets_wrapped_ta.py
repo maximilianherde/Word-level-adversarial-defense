@@ -11,7 +11,9 @@ def get_textattack_AG_NEWS():
 def get_textattack_IMDB():
     imdb = IMDB(None, None, split='test')
     dataset = imdb.dataset
-    pass
+    new_order_columns = ['data', 'label']
+    new_dataset = dataset.reindex(columns=new_order_columns)
+    return textattack.datasets.Dataset(new_dataset.tolist())
 
 
 def get_textattack_YahooAnswers():
