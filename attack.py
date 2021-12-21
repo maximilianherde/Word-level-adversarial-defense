@@ -45,15 +45,18 @@ else:
     tokenizer = get_tokenizer('basic_english')
 
 if DATASET == "AG_NEWS":
-    dataset = AG_NEWS(tokenizer, MODEL, split='test')
-    dataset = textattack.datasets.HuggingFaceDataset(datasets)
+    # dataset = textattack.dataset.Dataset(
+    #    AG_NEWS(tokenizer, MODEL, split='test'))
+    #dataset = textattack.datasets.HuggingFaceDataset(datasets)
+    dataset = textattack.datasets.HuggingFaceDataset('ag_news', split='test')
     num_classes = 4
 elif DATASET == "IMDB":
-    dataset = IMDB(tokenizer, MODEL, split='test')
+    dataset = textattack.dataset.Dataset(IMDB(tokenizer, MODEL, split='test'))
     dataset = textattack.datasets.HuggingFaceDataset(dataset)
     num_classes = 2
 elif DATASET == "YahooAnswers":
-    dataset = YahooAnswers(tokenizer, MODEL, split='test')
+    dataset = textattack.dataset.Dataset(
+        YahooAnswers(tokenizer, MODEL, split='test'))
     dataset = textattack.datasets.HuggingFaceDataset(dataset)
     num_classes = 10
 else:
