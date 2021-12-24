@@ -44,3 +44,31 @@ class CustomBERTModelWrapper(textattack.models.wrappers.model_wrapper.ModelWrapp
                 preds[i] = prediction
 
         return preds
+    
+class CustomSEMModelWrapper(textattack.models.wrappers.model_wrapper.ModelWrapper):
+    def __init__(self, model, outdim, vocab, device, tokenizer=torchtext.data.utils.get_tokenizer("basic_english")):
+        self.model = model
+        self.tokenizer = tokenizer
+        self.outdim = outdim
+        self.vocab = vocab
+        self.device = device
+
+    def __call__(self, text_input_list):
+        preds = torch.zeros(size=(len(text_input_list), self.outdim))
+        for i, review in enumerate(text_input_list):
+            tokens = self.tokenizer(review)
+            input_list = []
+            for _token in tokens:
+                embed_temp = self.vocab.get(_token)
+                if embed_temp != None:
+                    input_list.append(self.vocab.get(_token))
+                
+                else:
+                    input_list.append(torch.zeros(50))
+
+            input_stacked = torch.stack(input_list)
+            with torch.no_grad():
+                prediction = self.model(torch.unsqueeze(input_stacked, dim=0).to(self.device))
+                preds[i] = prediction
+
+        return preds
