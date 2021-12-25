@@ -14,11 +14,9 @@ def concat_text(x):
 def get_textattack_AG_NEWS():
     ag_news = AG_NEWS(None, None, split='test')
     dataset = ag_news.dataset
-    print(dataset.head())
     new_dataset = pd.DataFrame(columns=['data', 'label'])
     new_dataset['label'] = dataset.iloc[:, 0].apply(label_map)
     new_dataset['data'] = dataset.iloc[:, 1:].apply(concat_text, axis=1)
-    print(new_dataset.head())
     return textattack.datasets.Dataset(new_dataset.values.tolist())
 
 

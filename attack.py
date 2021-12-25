@@ -14,11 +14,11 @@ from attackutils.modelwrapper import CustomPyTorchModelWrapper, CustomBERTModelW
 
 if len(sys.argv) == 1:
     print(
-        'Usage: python attack.py MODEL DATASET GLOVE_CACHE_PATH TRANSFORMERS_CACHE_PATH MODEL_PATH ATTACK_NAME CSV_PATH VERSION')
+        'Usage: python attack.py MODEL DATASET GLOVE_CACHE_PATH TRANSFORMERS_CACHE_PATH MODEL_PATH ATTACK_NAME CSV_PATH VERSION [SEM_EMBED_PATH]')
     print('Choices for MODEL: GRU, LSTM, CNN, BERT, CNN2')
     print('Choices for DATASET: IMDB, AG_NEWS, YahooAnswers')
     print('Choices for ATTACK_NAME: PWWS, BAE, FGA')
-    print('Choices for VERSION: CLEAN, WLADL')
+    print('Choices for VERSION: CLEAN, WLADL, SEM, PWWS')
     exit()
 else:
     MODEL = sys.argv[1]
@@ -29,6 +29,8 @@ else:
     ATTACK_NAME = sys.argv[6]
     CSV_PATH = sys.argv[7]
     VERSION = sys.argv[8]
+    if VERSION == 'SEM':
+        PATH_TO_SEM_EMBED = sys.argv[9]
 
 print(f'Running with: {MODEL} {DATASET} {VECTOR_CACHE} {TRANSFORMERS_CACHE} {MODEL_PATH} {ATTACK_NAME} {CSV_PATH} {VERSION}')
 
