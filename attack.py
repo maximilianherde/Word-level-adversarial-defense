@@ -103,7 +103,11 @@ elif ATTACK_NAME == 'FGA':
 else:
     raise ValueError()
 
-attack_args = textattack.AttackArgs(
-    num_examples=200, log_to_csv=CSV_PATH + '/' + model_name + '_' + ATTACK_NAME + '.csv')
+if ATTACK_NAME == 'FGA':
+    attack_args = textattack.AttackArgs(
+        num_examples=200, query_budget=5000, log_to_csv=CSV_PATH + '/' + model_name + '_' + ATTACK_NAME + '.csv')
+else:
+    attack_args = textattack.AttackArgs(
+        num_examples=200, log_to_csv=CSV_PATH + '/' + model_name + '_' + ATTACK_NAME + '.csv')
 attacker = textattack.Attacker(attack, dataset, attack_args)
 attacker.attack_dataset()
