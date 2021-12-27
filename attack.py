@@ -8,7 +8,7 @@ from models.BERT import BERTClassifier
 from torchtext.data.utils import get_tokenizer
 from transformers import BertTokenizer
 from datasets_wrapped_ta import *
-from attackutils.modelwrapper import CustomPyTorchModelWrapper, CustomBERTModelWrapper
+from attackutils.modelwrapper import CustomPyTorchModelWrapper, CustomBERTModelWrapper, CustomSEMModelWrapper
 
 # When running on Euler, set TA_CACHE_DIR to a scratch dir, then run the script on a login node to cache the datasets
 
@@ -71,16 +71,25 @@ elif MODEL == 'CNN2':
 else:
     raise ValueError()
 
-checkpoint = torch.load(MODEL_PATH + '/' + model_name + '.pt')
-model.load_state_dict(checkpoint['model_state_dict'])
-model.eval()
-
-if MODEL == 'BERT':
-    model_wrapper = CustomBERTModelWrapper(
-        model, outdim=num_classes, device=device)
+if VERSION == 'SEM':
+    embedding_path = PATH_TO_SEM_EMBED + \
+        '/new_embeddings_d_3.1_k_10_' + DATASET + '.pt'
+    embed = torch.load(embedding_path)
+    checkpoint = torch.load(MODEL_PATH + '/' + model_name + '_3.1.pt')
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.eval()
+    model_wrapper = CustomSEMModelWrapper(
+        model, outdim=num_classes, vocab=embed, device=device)
 else:
-    model_wrapper = CustomPyTorchModelWrapper(
-        model, outdim=num_classes, vocab=GloVe(name='6B', dim=50, cache=VECTOR_CACHE), device=device)
+    checkpoint = torch.load(MODEL_PATH + '/' + model_name + '.pt')
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.eval()
+    if MODEL == 'BERT':
+        model_wrapper = CustomBERTModelWrapper(
+            model, outdim=num_classes, device=device)
+    else:
+        model_wrapper = CustomPyTorchModelWrapper(
+            model, outdim=num_classes, vocab=GloVe(name='6B', dim=50, cache=VECTOR_CACHE), device=device)
 
 if ATTACK_NAME == 'PWWS':
     attack = textattack.attack_recipes.pwws_ren_2019.PWWSRen2019.build(
