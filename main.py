@@ -18,7 +18,7 @@ from metrics.f1 import f1
 from metrics.stats import stats
 from transformers import BertTokenizer, BertForSequenceClassification, AdamW
 from pathlib import Path
-from datasets_euler import AG_NEWS, IMDB, YahooAnswers
+from datasets_euler import AG_NEWS, IMDB, YahooAnswers, YahooAnswers_ADV
 import time
 import os
 import sys
@@ -28,7 +28,7 @@ if len(sys.argv) == 1:
     print(
         'Usage: python main.py MODEL DATASET BATCH_SIZE GLOVE_CACHE_PATH TRANSFORMERS_CACHE_PATH ON_CLUSTER CHECKPOINT TRAIN [NUM_EPOCHS] [WITH_DEFENSE]')
     print('Choices for MODEL: GRU, LSTM, CNN, BERT, CNN2')
-    print('Choices for DATASET: IMDB, AG_NEWS, YahooAnswers')
+    print('Choices for DATASET: IMDB, AG_NEWS, YahooAnswers, YahooAnswers_ADV')
     exit()
 else:
     MODEL = sys.argv[1]
@@ -62,7 +62,7 @@ MAX_LEN_BERT = 300
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 if MODEL == 'BERT':
-    #if CLUSTER:
+    # if CLUSTER:
     #    os.environ['TRANSFORMERS_OFFLINE'] = '1'
     #    os.environ['TRANSFORMERS_CACHE'] = TRANSFORMERS_CACHE
     tokenizer = BertTokenizer.from_pretrained(
@@ -92,6 +92,12 @@ elif DATASET == 'YahooAnswers':
                              with_defense=WITH_DEFENSE, thesaurus=example_thes, embedding=embedding)
     test_set = YahooAnswers(tokenizer, MODEL, split='test',
                             with_defense=WITH_DEFENSE, thesaurus=example_thes, embedding=embedding)
+    num_classes = 10
+elif DATASET == 'YahooAnswers_ADV':
+    train_set = YahooAnswers_ADV(tokenizer, MODEL, split='train',
+                                 with_defense=WITH_DEFENSE, thesaurus=example_thes, embedding=embedding)
+    test_set = YahooAnswers_ADV(tokenizer, MODEL, split='test',
+                                with_defense=WITH_DEFENSE, thesaurus=example_thes, embedding=embedding)
     num_classes = 10
 else:
     raise ValueError()

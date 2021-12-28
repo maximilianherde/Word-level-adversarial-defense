@@ -119,3 +119,46 @@ class YahooAnswers(Dataset):
                 return int(self.dataset.iloc[idx, 0]) - 1, self.tokenizer(' '.join((self.dataset.iloc[idx, 1:]).map(str)), padding='max_length', return_tensors='pt', max_length=512, truncation=True)
         else:
             return int(self.dataset.iloc[idx, 0]) - 1, self.tokenizer(' '.join((self.dataset.iloc[idx, 1:]).map(str)))
+
+
+class YahooAnswers_ADV(Dataset):
+    def __init__(self, tokenizer, model, split, with_defense=False, thesaurus=None, embedding=None):
+        super().__init__()
+        self.num_classes = 10
+        if split == 'train':
+            self.dataset = pd.read_csv(
+                BASIC_PATH + '/YahooAnswers/YahooAnswers_ADV.csv')
+        elif split == 'test':
+            self.dataset = pd.read_csv(
+                BASIC_PATH + '/YahooAnswers/yahoo_answers_csv/test.csv', header=None)
+        else:
+            raise ValueError()
+        self.split = split
+        self.tokenizer = tokenizer
+        self.model = model
+        if with_defense and model == 'BERT':
+            self.with_defense = with_defense
+            self.temp_tokenizer = get_tokenizer('basic_english')
+            self.thesaurus = thesaurus
+            self.embedding = embedding
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        if self.split == 'train':
+            label = self.dataset["label"][idx]
+            text = self.dataset["txt"][idx]
+
+            if self.model == 'BERT':
+                return label, self.tokenizer(text, padding="max_length", return_tensors='pt', max_length=512, truncation=True)
+            else:
+                return label, self.tokenizer(text)
+        else:
+            if self.model == 'BERT':
+                if self.with_defense:
+                    return int(self.dataset.iloc[idx, 0]) - 1, self.tokenizer(' '.join(mask_replace_with_syns_add_noise(self.temp_tokenizer(' '.join((self.dataset.iloc[idx, 1:]).map(str))), self.thesaurus, self.embedding, self.model)), padding='max_length', return_tensors='pt', max_length=512, truncation=True)
+                else:
+                    return int(self.dataset.iloc[idx, 0]) - 1, self.tokenizer(' '.join((self.dataset.iloc[idx, 1:]).map(str)), padding='max_length', return_tensors='pt', max_length=512, truncation=True)
+            else:
+                return int(self.dataset.iloc[idx, 0]) - 1, self.tokenizer(' '.join((self.dataset.iloc[idx, 1:]).map(str)))
