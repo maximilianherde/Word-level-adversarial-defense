@@ -56,6 +56,7 @@ class CustomSEMModelWrapper(textattack.models.wrappers.model_wrapper.ModelWrappe
     def __call__(self, text_input_list):
         preds = torch.zeros(size=(len(text_input_list), self.outdim))
         for i, review in enumerate(text_input_list):
+            review = review.lower()
             tokens = self.tokenizer(review)
             input_list = []
             for _token in tokens:
