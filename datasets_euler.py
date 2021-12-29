@@ -22,8 +22,8 @@ class AG_NEWS(Dataset):
                 BASIC_PATH + '/AG_NEWS/test.csv', header=None)
         else:
             raise ValueError()
+        self.with_defense = with_defense
         if with_defense and model == 'BERT':
-            self.with_defense = with_defense
             self.temp_tokenizer = get_tokenizer('basic_english')
             self.thesaurus = thesaurus
             self.embedding = embedding
@@ -47,8 +47,8 @@ class IMDB(Dataset):
         self.num_classes = 2
         self.tokenizer = tokenizer
         self.model = model
+        self.with_defense = with_defense
         if with_defense and model == 'BERT':
-            self.with_defense = with_defense
             self.temp_tokenizer = get_tokenizer('basic_english')
             self.thesaurus = thesaurus
             self.embedding = embedding
@@ -102,8 +102,8 @@ class YahooAnswers(Dataset):
                 BASIC_PATH + '/YahooAnswers/yahoo_answers_csv/test.csv', header=None)
         else:
             raise ValueError()
+        self.with_defense = with_defense
         if with_defense and model == 'BERT':
-            self.with_defense = with_defense
             self.temp_tokenizer = get_tokenizer('basic_english')
             self.thesaurus = thesaurus
             self.embedding = embedding
@@ -136,8 +136,8 @@ class YahooAnswers_ADV(Dataset):
         self.split = split
         self.tokenizer = tokenizer
         self.model = model
+        self.with_defense = with_defense
         if with_defense and model == 'BERT':
-            self.with_defense = with_defense
             self.temp_tokenizer = get_tokenizer('basic_english')
             self.thesaurus = thesaurus
             self.embedding = embedding
