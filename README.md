@@ -4,6 +4,7 @@ Deep Learning Project HS21
 ## Dependencies
 - torch
 - torchtext
+- torchfile
 - tqdm
 - textattack
 - scikit-learn
