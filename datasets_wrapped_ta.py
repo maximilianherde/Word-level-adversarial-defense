@@ -1,3 +1,9 @@
+"""
+
+Prepares test sets as TextAttack datasets for attacking.
+
+"""
+
 from datasets_euler import AG_NEWS, IMDB, YahooAnswers
 import pandas as pd
 import textattack

@@ -1,3 +1,10 @@
+"""
+
+Custom model wrappers for attacking all our models using TextAttack and PyTorch.
+
+"""
+
+
 import textattack
 import torchtext
 import torch
@@ -5,6 +12,10 @@ from transformers import BertTokenizer
 
 
 class CustomPyTorchModelWrapper(textattack.models.wrappers.model_wrapper.ModelWrapper):
+    """
+    Model wrapper for recurrent models and CNNs. Not to be used with SEM embeddings.
+    """
+
     def __init__(self, model, outdim, vocab, device, tokenizer=torchtext.data.utils.get_tokenizer("basic_english")):
         self.model = model
         self.tokenizer = tokenizer
@@ -26,6 +37,9 @@ class CustomPyTorchModelWrapper(textattack.models.wrappers.model_wrapper.ModelWr
 
 
 class CustomBERTModelWrapper(textattack.models.wrappers.model_wrapper.ModelWrapper):
+    """
+    Model wrapper for BERT models.
+    """
 
     def __init__(self, model, outdim, device, tokenizer=BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)):
         self.model = model
@@ -44,8 +58,13 @@ class CustomBERTModelWrapper(textattack.models.wrappers.model_wrapper.ModelWrapp
                 preds[i] = prediction
 
         return preds
-    
+
+
 class CustomSEMModelWrapper(textattack.models.wrappers.model_wrapper.ModelWrapper):
+    """
+    Model wrapper to be used with SEM embeddings.
+    """
+
     def __init__(self, model, outdim, vocab, device, tokenizer=torchtext.data.utils.get_tokenizer("basic_english")):
         self.model = model
         self.tokenizer = tokenizer
@@ -63,13 +82,14 @@ class CustomSEMModelWrapper(textattack.models.wrappers.model_wrapper.ModelWrappe
                 embed_temp = self.vocab.get(_token)
                 if embed_temp != None:
                     input_list.append(self.vocab.get(_token))
-                
+
                 else:
                     input_list.append(torch.zeros(50))
 
             input_stacked = torch.stack(input_list)
             with torch.no_grad():
-                prediction = self.model(torch.unsqueeze(input_stacked, dim=0).to(self.device))
+                prediction = self.model(torch.unsqueeze(
+                    input_stacked, dim=0).to(self.device))
                 preds[i] = prediction
 
         return preds

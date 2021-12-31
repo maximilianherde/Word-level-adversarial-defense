@@ -27,7 +27,7 @@ from metrics.f1 import f1
 from metrics.stats import stats
 from transformers import BertTokenizer, BertForSequenceClassification, AdamW
 from pathlib import Path
-from datasets_euler import AG_NEWS, IMDB, YahooAnswers, YahooAnswers_ADV
+from datasets_euler import AG_NEWS, AG_NEWS_ADV, IMDB, IMDB_ADV, YahooAnswers, YahooAnswers_ADV
 import time
 import os
 import sys
@@ -42,7 +42,7 @@ if len(sys.argv) == 1:
     print(
         'Usage: python main.py MODEL DATASET BATCH_SIZE GLOVE_CACHE_PATH TRANSFORMERS_CACHE_PATH ON_CLUSTER CHECKPOINT TRAIN [NUM_EPOCHS] [WITH_DEFENSE]')
     print('Choices for MODEL: GRU, LSTM, CNN, BERT, CNN2')
-    print('Choices for DATASET: IMDB, AG_NEWS, YahooAnswers, YahooAnswers_ADV')
+    print('Choices for DATASET: IMDB, IMDB_ADV, AG_NEWS, AG_NEWS_ADV, YahooAnswers, YahooAnswers_ADV')
     exit()
 else:
     MODEL = sys.argv[1]
@@ -98,11 +98,23 @@ if DATASET == 'IMDB':
     test_set = IMDB(tokenizer, MODEL, split='test', with_defense=WITH_DEFENSE,
                     thesaurus=example_thes, embedding=embedding)
     num_classes = 2
+elif DATASET == 'IMDB_ADV':
+    train_set = IMDB_ADV(tokenizer, MODEL, split='train', with_defense=WITH_DEFENSE,
+                         thesaurus=example_thes, embedding=embedding)
+    test_set = IMDB_ADV(tokenizer, MODEL, split='test', with_defense=WITH_DEFENSE,
+                        thesaurus=example_thes, embedding=embedding)
+    num_classes = 2
 elif DATASET == 'AG_NEWS':
     train_set = AG_NEWS(tokenizer, MODEL, split='train',
                         with_defense=WITH_DEFENSE, thesaurus=example_thes, embedding=embedding)
     test_set = AG_NEWS(tokenizer, MODEL, split='test', with_defense=WITH_DEFENSE,
                        thesaurus=example_thes, embedding=embedding)
+    num_classes = 4
+elif DATASET == 'AG_NEWS_ADV':
+    train_set = AG_NEWS_ADV(tokenizer, MODEL, split='train',
+                            with_defense=WITH_DEFENSE, thesaurus=example_thes, embedding=embedding)
+    test_set = AG_NEWS_ADV(tokenizer, MODEL, split='test', with_defense=WITH_DEFENSE,
+                           thesaurus=example_thes, embedding=embedding)
     num_classes = 4
 elif DATASET == 'YahooAnswers':
     train_set = YahooAnswers(tokenizer, MODEL, split='train',
