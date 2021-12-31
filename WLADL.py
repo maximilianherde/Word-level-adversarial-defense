@@ -1,3 +1,10 @@
+"""
+
+Everything you need to defend using WLADL.
+WLADL layer in mask_replace_with_syns_add_noise.
+
+"""
+
 import torch
 import numpy as np
 import nltk
@@ -6,6 +13,9 @@ from tqdm import tqdm
 
 
 def build_thesaurus(all_words, pbar_update=True):
+    """
+    Build the synonym thesaurus.
+    """
     # Expects torch.vocab.itos dictionary to extract thesaurus
     thesaurus = {}
     syns = []
@@ -43,6 +53,11 @@ def build_thesaurus(all_words, pbar_update=True):
 
 
 def mask_replace_with_syns_add_noise(sentence, thesaurus, embedding, model, mask_probability=0.1, synonym_probability=0.25, pos_noise=0.1):
+    """
+    Word-level Adversarial Defense Layer
+    Expects sentence, a synonym thesaurus, embedding and a model specifier. Set $p_1$ and $p_2$ using mask_probability and synonym_probability.
+    Returns embedding vectors for all models except BERT for which it returns tokens.
+    """
     tokens_to_ret = []
     for word in sentence:
         mask_flag = np.random.choice([0, 1], replace=False, p=[
@@ -74,6 +89,7 @@ def mask_replace_with_syns_add_noise(sentence, thesaurus, embedding, model, mask
     else:
         # We have masked and replaced with synonyms randomly, now obtain embeddings
         embed = embedding.get_vecs_by_tokens(tokens_to_ret)
+
     '''pos_encoding = np.zeros(embed.shape)
     # Positional encoding introduced in Vaswani et. al.
     for i in range(embed.shape[0]):
@@ -81,4 +97,5 @@ def mask_replace_with_syns_add_noise(sentence, thesaurus, embedding, model, mask
             pos_param = pos_noise*np.sin(i / (10000 ** ((2*(i//2) / embed.shape[1]))))
         else:
             pos_param = pos_noise*np.cos(i / (10000 ** ((2*(i//2) / embed.shape[1]))))'''
+
     return embed
