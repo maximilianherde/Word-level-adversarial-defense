@@ -1,6 +1,19 @@
+"""
+
+A classification dataset wrapper, not to be used on Euler or if datasets are cached by hand.
+DEPRECATED
+
+"""
+
 from torch.utils.data import Dataset
 
+
 class ClassificationDataset(Dataset):
+    """
+    Works with IMDB, AG_NEWS, YahooAnswers.
+    Returns tokens using specified tokenizer.
+    """
+
     def __init__(self, dataset, num_classes, tokenizer, model):
         self.num_classes = num_classes
         self.dataset = dataset
