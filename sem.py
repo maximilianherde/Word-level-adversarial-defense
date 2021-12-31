@@ -211,8 +211,6 @@ def possible_synonyms(token_ref, dict_with_tokens, distance_for_sin, nr_of_synon
 def Synonym_Encoding_Algorithm(top_50000_dict, distance, nr_of_synonyms, \
                                embedding, glove_dict, return_tot_emb):
 
-  top_50000_dict = dict(top_50000_dict)
-
   #Setting the value of the keys to NULL in order to flag them
   for token, frequency in top_50000_dict.items():
     top_50000_dict[token] = 'NULL'
@@ -223,7 +221,7 @@ def Synonym_Encoding_Algorithm(top_50000_dict, distance, nr_of_synonyms, \
   print("Starting SEM")
   for token in top_50000_dict:
     counter += 1
-    if(counter % 300 == 0):
+    if(counter % 10 == 0):
       print(counter,' out of ', len(top_50000_dict))
       print('Expected total time is: ', 50000*tot_time/counter)
 
@@ -269,10 +267,8 @@ top_50000_dict = dict(top_50000_list)
 max_euclidian_distance = 3.6
 max_nr_of_synonyms = 10
 
-top_dict = make_frequency_counter(list_of_tks)
-
 print('starting with a new embedding')
-new_embedding = Synonym_Encoding_Algorithm(top_dict, \
+new_embedding = Synonym_Encoding_Algorithm(top_50000_dict, \
   max_euclidian_distance, max_nr_of_synonyms, embedding, glove_dict, False)
 
 PATH = '/content/drive/MyDrive/School/'
