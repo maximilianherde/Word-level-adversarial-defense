@@ -1,3 +1,11 @@
+"""
+
+Main driver for training all models with or without WLADL. Can also resume training from checkpoints.
+It is thought to be used in a firewalled environment such as the compute nodes of ETHZ's Euler cluster thus expects all dependencies to be cached somewhere.
+Saves a checkpoint for every epoch in ./checkpoints
+
+"""
+
 import torch
 # from torchtext.datasets import IMDB, AG_NEWS, YahooAnswers
 from torchtext.vocab import GloVe
@@ -23,6 +31,10 @@ import time
 import os
 import sys
 from WLADL import build_thesaurus, mask_replace_with_syns_add_noise
+
+print('Prior to running this script on Euler: make sure to have the following environment variables set:')
+print('export TRANSFORMERS_OFFLINE=1')
+print('export TRANSFORMERS_CACHE=<PATH_TO_TRANSFORMERS_LIB_CACHE>')
 
 if len(sys.argv) == 1:
     print(
@@ -70,11 +82,14 @@ if MODEL == 'BERT':
 else:
     tokenizer = get_tokenizer('basic_english')
 
+# load the GloVe embeddings from a specified cache
 embedding = GloVe(name='6B', dim=50, cache=VECTOR_CACHE)
 example_thes = None
 if WITH_DEFENSE:
+    # build WordNet thesaurus for WLADL
     example_thes = build_thesaurus(embedding.itos, not CLUSTER)
 
+# get the datsets
 if DATASET == 'IMDB':
     train_set = IMDB(tokenizer, MODEL, split='train', with_defense=WITH_DEFENSE,
                      thesaurus=example_thes, embedding=embedding)
@@ -112,6 +127,10 @@ test_set, val_set = random_split(test_set, [test_set.__len__() - int(VALIDATION_
 
 
 def collate_batch(batch):
+    """
+    expects tokens, gets embedding vectors, then pads and returns labels and text
+    for use with BiLSTM/BiGRU and CNN
+    """
     label_list, text_list = [], []
     for (_label, _tokens) in batch:
         label_list.append(_label)
@@ -123,6 +142,10 @@ def collate_batch(batch):
 
 
 def collate_defense_batch(batch):
+    """
+    collate fn for WLADL application
+    applies the defense layer which returns embeddings, then pads and returns labels and text
+    """
     label_list, text_list = [], []
     for (_label, _tokens) in batch:
         label_list.append(_label)
@@ -135,6 +158,9 @@ def collate_defense_batch(batch):
 
 
 def collate_BERT(batch):
+    """
+    returns everything that BERT needs
+    """
     label_list, input_ids, token_type_ids, attention_mask = [], [], [], []
     for (_label, _dic) in batch:
         label_list.append(_label)
@@ -181,6 +207,9 @@ else:
 
 
 def evaluate(model, data_loader, loss=CrossEntropyLoss()):
+    """
+    Evaluates the model on given data and returns accuracy on it.
+    """
     model.eval()
     total_acc, total_count = 0, 0
 
@@ -203,6 +232,10 @@ def evaluate(model, data_loader, loss=CrossEntropyLoss()):
 
 
 def train(model, optimizer, train_loader, loss=CrossEntropyLoss(), log_interval=50):
+    """
+    Trains the model using optimizer on the given dataset.
+    Progress bar can be controlled using global CLUSTER param.
+    """
     model.train()
     total_acc, total_count = 0, 0
     pbar = tqdm(total=len(train_loader),
@@ -214,7 +247,8 @@ def train(model, optimizer, train_loader, loss=CrossEntropyLoss(), log_interval=
             loss_ = loss(output, labels)
             optimizer.zero_grad()
             loss_.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            torch.nn.utils.clip_grad_norm_(
+                model.parameters(), max_norm=1.0)  # don't let grads explode
             optimizer.step()
             total_acc += (output.argmax(1) == labels).sum().item()
             total_count += labels.size(0)
@@ -247,6 +281,7 @@ def train(model, optimizer, train_loader, loss=CrossEntropyLoss(), log_interval=
         pbar.close()
 
 
+# select model, always train using Adam and default params.
 if MODEL == 'GRU':
     model = BidirectionalGRUClassifier(num_classes, 64, 1).to(device)
     optim = Adam(model.parameters())
@@ -255,7 +290,6 @@ elif MODEL == 'LSTM':
     optim = Adam(model.parameters())
 elif MODEL == 'CNN':
     model = CNNClassifier(num_classes, 1, [3, 5, 7], [2, 3, 4]).to(device)
-    # todo: ADD right parameters: num_classes, in_channels, out_channels, kernel_heights
     optim = Adam(model.parameters())
 elif MODEL == 'BERT':
     model = BERTClassifier(num_classes).to(device)
@@ -309,6 +343,7 @@ print("Model :" + str(MODEL) + ", Dataset: " + str(DATASET) +
 stats_t = stats(model, MODEL, train_loader, avg="weighted")
 print(f'Train stats (accuracy, RocAuc, f1): {stats_t}')
 
+# test model and output stats
 start_time_test = time.time()
 
 stats_ = stats(model, MODEL, test_loader, avg="weighted")
