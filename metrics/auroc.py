@@ -1,8 +1,18 @@
+"""
+
+Area under Receiver-operator characteristics metric.
+Uses sklearn to compute this metric on the CPU.
+
+"""
+
 import torch
 from sklearn.metrics import roc_auc_score
 
 
 def auroc(model, MODEL, data_loader, avg):
+    """
+    Returns the auroc metric for data in data_loader on the model (specified as MODEL) using avg as average for multi-class problems.
+    """
     model.eval()
     y_true = []
     y_pred = []
@@ -23,4 +33,3 @@ def auroc(model, MODEL, data_loader, avg):
         y_pred_t = y_pred_t[:, 1]
 
     return roc_auc_score(y_true_t, y_pred_t, multi_class='ovr', average=avg)
-

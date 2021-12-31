@@ -1,8 +1,20 @@
+"""
+
+Recurrent language models.
+Contains Bidirectional LSTM and Bidirectional GRU.
+
+"""
+
 import torch
 from torch.nn import LSTM, GRU, Linear, Softmax
 
 
 class BidirectionalLSTMClassifier(torch.nn.Module):
+    """
+    A bidirectional LSTM classifier that expects 50-dim embeddings.
+    Calculates class-probabilities.
+    """
+
     def __init__(self, num_classes, hidden_size, num_layers):
         super().__init__()
         self.num_layers = num_layers
@@ -20,6 +32,11 @@ class BidirectionalLSTMClassifier(torch.nn.Module):
 
 
 class BidirectionalGRUClassifier(torch.nn.Module):
+    """
+    A bidirectional GRU classifier that expects 50-dim embeddings.
+    Calculates class-probabilities.
+    """
+
     def __init__(self, num_classes, hidden_size, num_layers):
         super().__init__()
         self.num_layers = num_layers

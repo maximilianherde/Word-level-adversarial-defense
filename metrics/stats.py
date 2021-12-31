@@ -1,8 +1,18 @@
+"""
+
+Collect accuracy, AUROC and F1 score.
+
+"""
+
+
 import torch
 from sklearn.metrics import roc_auc_score, f1_score
 
 
 def stats(model, MODEL, data_loader, avg):
+    """
+    Returns accuracy, AUROC and f1 score of the model (specified as MODEL) over data_loader. avg is the averaging method used for multi-class problems.
+    """
     model.eval()
     y_true = []
     y_pred = []
@@ -11,7 +21,8 @@ def stats(model, MODEL, data_loader, avg):
         if MODEL == "BERT":
             for idx, (labels, input_ids, token_type_ids, attention_mask) in enumerate(data_loader):
                 y_pred.append(model(input_ids, token_type_ids, attention_mask))
-                y_pred_arg.append(model(input_ids, token_type_ids, attention_mask).argmax(1))
+                y_pred_arg.append(
+                    model(input_ids, token_type_ids, attention_mask).argmax(1))
                 y_true.append(labels)
         else:
             for idx, (labels, text) in enumerate(data_loader):
