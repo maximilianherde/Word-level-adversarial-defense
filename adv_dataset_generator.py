@@ -1,3 +1,10 @@
+"""
+    Code to generate adversarial examples to augment for VAT training.
+    Uses a LSTM_X_CLEAN.pt model and PWWS attack, logs the adversarial
+    samples, corresponding to approximately 10% of each dataset.
+"""
+
+
 import textattack
 import sys
 import torch
