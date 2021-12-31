@@ -90,12 +90,5 @@ def mask_replace_with_syns_add_noise(sentence, thesaurus, embedding, model, mask
         # We have masked and replaced with synonyms randomly, now obtain embeddings
         embed = embedding.get_vecs_by_tokens(tokens_to_ret)
 
-    '''pos_encoding = np.zeros(embed.shape)
-    # Positional encoding introduced in Vaswani et. al.
-    for i in range(embed.shape[0]):
-        if i%2 == 0:
-            pos_param = pos_noise*np.sin(i / (10000 ** ((2*(i//2) / embed.shape[1]))))
-        else:
-            pos_param = pos_noise*np.cos(i / (10000 ** ((2*(i//2) / embed.shape[1]))))'''
 
     return embed
