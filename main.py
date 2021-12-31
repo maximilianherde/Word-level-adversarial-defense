@@ -2,7 +2,8 @@
 
 Main driver for training all models with or without WLADL. Can also resume training from checkpoints.
 It is thought to be used in a firewalled environment such as the compute nodes of ETHZ's Euler cluster thus expects all dependencies to be cached somewhere.
-Saves a checkpoint for every epoch in ./checkpoints
+Saves a checkpoint for every epoch in ./checkpoints.
+Make sure that BASIC_PATH in datasets_euler.py is set to point to the root of all datasets.
 
 """
 
@@ -35,6 +36,7 @@ from WLADL import build_thesaurus, mask_replace_with_syns_add_noise
 print('Prior to running this script on Euler: make sure to have the following environment variables set:')
 print('export TRANSFORMERS_OFFLINE=1')
 print('export TRANSFORMERS_CACHE=<PATH_TO_TRANSFORMERS_LIB_CACHE>')
+print('Also set BASIC_PATH in datasets_euler.py to the root of all datasets.')
 
 if len(sys.argv) == 1:
     print(

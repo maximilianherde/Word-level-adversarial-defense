@@ -1,3 +1,11 @@
+"""
+
+Script for attacking all models using BAE-R, PWWS, and Faster Genetic Algorithm.
+It is thought to be used in a firewalled environment such as the compute nodes of ETHZ's Euler cluster thus expects all dependencies to be cached somewhere.
+Make sure that BASIC_PATH in datasets_euler.py is set to point to the root of all datasets.
+
+"""
+
 import textattack
 import sys
 import torch
@@ -10,7 +18,11 @@ from transformers import BertTokenizer
 from datasets_wrapped_ta import *
 from attackutils.modelwrapper import CustomPyTorchModelWrapper, CustomBERTModelWrapper, CustomSEMModelWrapper
 
-# When running on Euler, set TA_CACHE_DIR to a scratch dir, then run the script on a login node to cache the datasets
+print('Prior to running this script on Euler: make sure to have the following environment variables set:')
+print('export TA_CACHE_DIR=<PATH_TO_TEXTATTACK_CACHE>')
+print('export TRANSFORMERS_OFFLINE=1')
+print('export TRANSFORMERS_CACHE=<PATH_TO_TRANSFORMERS_LIB_CACHE>')
+print('Also set BASIC_PATH in datasets_euler.py to the root of all datasets.')
 
 if len(sys.argv) == 1:
     print(
@@ -45,6 +57,7 @@ if MODEL == 'BERT':
 else:
     tokenizer = get_tokenizer('basic_english')
 
+# get special textattack datasets
 if DATASET == "AG_NEWS":
     dataset = get_textattack_AG_NEWS()
     num_classes = 4
@@ -63,7 +76,6 @@ elif MODEL == 'LSTM':
     model = BidirectionalLSTMClassifier(num_classes, 64, 1).to(device)
 elif MODEL == 'CNN':
     model = CNNClassifier(num_classes, 1, [3, 5, 7], [2, 3, 4]).to(device)
-    # todo: ADD right parameters: num_classes, in_channels, out_channels, kernel_heights
 elif MODEL == 'BERT':
     model = BERTClassifier(num_classes).to(device)
 elif MODEL == 'CNN2':
@@ -103,7 +115,9 @@ elif ATTACK_NAME == 'FGA':
 else:
     raise ValueError()
 
+# Attack 200 samples from the test sets
 if ATTACK_NAME == 'FGA':
+    # here we limit the number of queries because of the slow speed of GA
     attack_args = textattack.AttackArgs(
         num_examples=200, query_budget=5000, log_to_csv=CSV_PATH + '/' + model_name + '_' + ATTACK_NAME + '.csv')
 else:
