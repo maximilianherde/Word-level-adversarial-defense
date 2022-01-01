@@ -1,25 +1,35 @@
-# Word-level-adversarial-defense
-Deep Learning Project HS21
+# Word-level Adversarial Defense Layer for Robust Natural Language Classification
+Project of the course __Deep Learning__ (HS21) @ ETH Zurich.
+
+## Code structure
+The main files are given by:
+- **main.py:** Models can be trained using this script.
+- **attack.py:** This script is for conducting attacks on the previously trained models.
+- **adv_dataset_generator.py:** Do vanilla adversarial training using this script (BiLSTM, PWWS).
+- **sem.py:** Create SEM embeddings with this script.
+
+The implementation of the models can be found in the `models` subfolder, functions for the calculation of metrics can be found in the `metrics` subfolder. `attackutils/modelwrapper.py` contains all custom model wrappers needed for attacking the models. `WLADL.py` accommodates our defense layer.
+
+Classes for the datasets can be found in `datasets_euler.py`. `datasets.py` is a deprecated version for the three classification datasets. In `datasets_wrapped_ta.py` are getter functions for datasets that can be used with TextAttack.
+
+The `notebooks` subdirectory contains Jupyter Notebooks that were used during the project since some of the work was done in Google Colab.
 
 ## Dependencies
 - torch
 - torchtext
 - torchfile
+- transformers
 - tqdm
 - textattack
 - scikit-learn
 
-## BERT resources
+## Reproducing results
+Results can be reproduced by training the models using `main.py` and then attacking using `attack.py`.
 
-- https://github.com/CSCfi/machine-learning-scripts/blob/master/examples/pytorch-imdb-bert.py
-- https://www.kaggle.com/atulanandjha/bert-testing-on-imdb-dataset-extensive-tutorial
-- https://github.com/hanxiao/bert-as-service
+## Running on Euler, ETHZ's computing cluster
+For a lot of our experiments we used GPUs from the Euler cluster. To run our code on the cluster, we use GCC 8.2.0 as Python compiler backend and Python 3.8.5 (switch to new software stack using `env2lmod`, load modules `module load gcc/8.2.0 python_gpu/3.8.5`). Since some packages we rely on are missing, installing them is necessary. To do so, create a virtual Python environment in the home directory (`python -m venv --system-site-packages <NAME_OF_VENV>`) and activate it (`source $HOME/<NAME_OF_VENV>/bin/activate`). Then install torchfile, textattack, torchtext==0.10.1 and tensorflow-text using pip (`pip install torchfile textattack torchtext==0.10.1 tensorflow-text`). If for any reason this list is not complete, also install using pip. Since Euler compute nodes are a firewalled environment, all data that would in an easy setting be downloaded by PyTorch or TextAttack must be uploaded manually onto Euler (to the scratch space), i.e. upload the GloVe embeddings used and the datasets. Make sure to comply with the structure that is expected by the files. For the transformers model data and the TextAttack data, do a dry run using the attacks and models on your own machine until actual training/attacking starts. Then, upload the cached data to Euler.
 
-## Running on Euler
-- Load the glove vectors to your scratch space on Euler (preferably using `scp`); it should mimic the way pytorch does it, i.e. just copy the zip from the `.vector_cache` that pytorch creates and unzip in the scratch on Euler. Don't forget to set the path variable `VECTOR_CACHE` in main to point to the glove folder in the scratch.
-- Load the datasets to your scratch space on Euler (preferably using `scp`); similar to the first point, do so with the zips that pytorch downloads into a cache folder. Unpack in Euler scratch and set path variable in `datasets_euler.py`.
-- (Has to be done everytime you log on to Euler) Switch to new software stack (`env2lmod`), load gcc 8.2.0 and python 3.8.5 for GPUs (`module load gcc/8.2.0 python_gpu/3.8.5`).
-- Create a Python environment using `python -m venv --system-site-packages my_venv` and activate using `source $HOME/my_venv/bin/activate`. Install textattack and torchtext, make sure to install torchtext 0.10.1 to not load a newer torch version `pip install torchtext=0.10.1 textattack`. If any other packages miss, also install through pip.
-- Job submission works as usual, e.g. `bsub -n 4 -We 05:00 -R "rusage[mem=3000,ngpus_excl_p=1]" -o output.txt python main.py`. This creates a job for four cores, each getting 3000MB RAM using one GPU, expected runtime is 5h and the output is written to output.txt.
-- Upload the transformers cache also to your scratch space. On Euler, set the environment variable `TRANSFORMERS_CACHE` to the folder you uploaded the transformers cache to. Also set `TRANSFORMERS_OFFLINE=1`.
-- If you submit without an interactive node comment you have to comment out a few lines in main.py in order to have a better outputfile. You have to comment out pbar.update() and pbar.set_postfix(loss=loss_, accuracy=total_acc / total_count). Remember to comment them out according to the model you're using.
+Before running anything, make sure to set two/three environment variables:
+- `export TRANSFORMERS_OFFLINE=1`, always
+- `export TRANSFORMERS_CACHE=<PATH_TO_TRANSFORMERS_CACHE>`, always
+- `export TA_CACHE_DIR=<PATH_TO_TEXTATTACK_CACHE>`, when attacking
