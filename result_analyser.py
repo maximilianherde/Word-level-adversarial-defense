@@ -1,11 +1,5 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 """
-Place the attack result csv's to the same directory as the script, and call the for the desired results
+Place the attack result csv's to the same directory as the script, and call the for the desired results (line 103)
 Possible items for model: BERT, CNN, LSTM
 Possible items for defense: WLADL, CLEAN, PWWS (VAT), SEM (not applicable to Bert)
 Possible items for attack: PWWS, BAE, FGA
@@ -15,9 +9,6 @@ Possible items for dataset: AG_NEWS, IMDB, YahooAnswers
 
 import pandas as pd
 import numpy as np
-
-
-# In[2]:
 
 
 def analyze_tool(model_name="CNN", defense_name="CLEAN", attack_name="PWWS", dataset_name="AG_NEWS", num_samples=200):
@@ -49,10 +40,7 @@ def analyze_tool(model_name="CNN", defense_name="CLEAN", attack_name="PWWS", dat
     print("AVERAGE TEXT LENGTH OF ATTACKED SAMPLES: {}".format(text_length_counter))
     print("AVERAGE NUMBER OF PERTURBED WORDS: {}".format(perturbed_word_counter))
 
-
-# In[3]:
-
-
+    
 def compare_defense_to_clean_accuracy(model_name, dataset_name, defense_name):
     
     if model_name != "BERT":
@@ -84,10 +72,6 @@ def compare_defense_to_clean_accuracy(model_name, dataset_name, defense_name):
     print("AVERAGE ACCURACY IMPROVEMENT FOR DEFENSE {} ON MODEL {} AND DATASET {}: {}".format(defense_name, model_name, 
                                                                                      dataset_name, res_imp))
 
-
-# In[4]:
-
-
 def compare_defense_to_clean_query(model_name, attack_name, defense_name):
     
     datasets = ["IMDB", "AG_NEWS", "YahooAnswers"]
@@ -116,11 +100,6 @@ def compare_defense_to_clean_query(model_name, attack_name, defense_name):
     print("AVERAGE QUERY IMPROVEMENT FOR DEFENSE {} ON MODEL {} AND ATTACK {}: {}".format(defense_name, model_name, 
                                                                                      attack_name, res_imp))
     
-
-
-# In[5]:
-
-
 model = "BERT"
 dataset = "YahooAnswers"
 defense = "PWWS"
@@ -128,14 +107,8 @@ attack = "BAE"
 
 analyze_tool(model_name = model, dataset_name=dataset, defense_name=defense, attack_name=attack)
 
-
-# In[6]:
-
-
 compare_defense_to_clean_accuracy("BERT", "YahooAnswers", "PWWS")
 
-
-# In[ ]:
 
 
 
