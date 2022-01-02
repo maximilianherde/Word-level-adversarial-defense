@@ -5,8 +5,9 @@ Project of the course __Deep Learning__ (HS21) @ ETH Zurich.
 The main files are given by:
 - **main.py:** Models can be trained using this script.
 - **attack.py:** This script is for conducting attacks on the previously trained models.
-- **adv_dataset_generator.py:** Do vanilla adversarial training using this script (BiLSTM, PWWS).
+- **adv_dataset_generator.py:** Generate vanilla adversarial training datasets using this script (BiLSTM, PWWS).
 - **sem.py:** Create SEM embeddings with this script.
+- **result_analyser.py:** To analyse attack results, use this script.
 
 The implementation of the models can be found in the `models` subfolder, functions for the calculation of metrics can be found in the `metrics` subfolder. `attackutils/modelwrapper.py` contains all custom model wrappers needed for attacking the models. `WLADL.py` accommodates our defense layer.
 
