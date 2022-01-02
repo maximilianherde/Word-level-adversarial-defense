@@ -34,3 +34,7 @@ Before running anything, make sure to set two/three environment variables:
 - `export TRANSFORMERS_OFFLINE=1`, always
 - `export TRANSFORMERS_CACHE=<PATH_TO_TRANSFORMERS_CACHE>`, always
 - `export TA_CACHE_DIR=<PATH_TO_TEXTATTACK_CACHE>`, when attacking
+
+
+## Contact
+Please contact merkul@ethz.ch for trained models or other information.
