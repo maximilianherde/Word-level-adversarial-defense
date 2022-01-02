@@ -13,7 +13,7 @@ The implementation of the models can be found in the `models` subfolder, functio
 
 Classes for the datasets can be found in `datasets_euler.py`. `datasets.py` is a deprecated version for the three classification datasets. In `datasets_wrapped_ta.py` are getter functions for datasets that can be used with TextAttack.
 
-The `notebooks` subdirectory contains Jupyter Notebooks that were used during the project since some of the work was done in Google Colab.
+The `notebooks` subdirectory contains example Jupyter Notebooks that were used during the project since some of the work was done in Google Colab.
 
 ## Dependencies
 - torch
